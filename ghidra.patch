@@ -339,6 +339,19 @@ index ea12a661f..af3539c3b 100644
 +		return new File(dirs.dataDir);
 +	}
  }
+diff --git a/Ghidra/RuntimeScripts/Linux/support/launch.sh b/Ghidra/RuntimeScripts/Linux/support/launch.sh
+index 3340dfeef..7f72dd995 100755
+--- a/Ghidra/RuntimeScripts/Linux/support/launch.sh
++++ b/Ghidra/RuntimeScripts/Linux/support/launch.sh
+@@ -108,7 +108,7 @@ if [ -f "${SUPPORT_DIR}/launch.properties" ]; then
+ 
+ 	# Production Environment
+ 	INSTALL_DIR="${SUPPORT_DIR}/.."
+-	CPATH="${INSTALL_DIR}/Ghidra/Framework/Utility/lib/Utility.jar"
++	CPATH="${INSTALL_DIR}/Ghidra/Framework/Utility/lib/Utility.jar:${INSTALL_DIR}/Ghidra/Framework/Utility/lib/directories-26.jar"
+ 	LS_CPATH="${SUPPORT_DIR}/LaunchSupport.jar"
+ 	DEBUG_LOG4J="${SUPPORT_DIR}/debug.log4j.xml"
+ else
 diff --git a/GhidraBuild/EclipsePlugins/GhidraDev/GhidraDevPlugin/src/main/java/ghidradev/ghidraprojectcreator/utils/GhidraScriptUtils.java b/GhidraBuild/EclipsePlugins/GhidraDev/GhidraDevPlugin/src/main/java/ghidradev/ghidraprojectcreator/utils/GhidraScriptUtils.java
 index ed083d01d..64c925b95 100644
 --- a/GhidraBuild/EclipsePlugins/GhidraDev/GhidraDevPlugin/src/main/java/ghidradev/ghidraprojectcreator/utils/GhidraScriptUtils.java
