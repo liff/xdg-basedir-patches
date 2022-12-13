@@ -1,0 +1,64 @@
+From 1d7b8d95eda03990b6cd42c697ad09658a6bc317 Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Tue, 13 Dec 2022 22:55:24 +0200
+Subject: [PATCH 1/2] Move font cache to `XDG_CACHE_HOME`
+
+---
+ .../unix/classes/sun/font/FcFontConfiguration.java           | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/java.desktop/unix/classes/sun/font/FcFontConfiguration.java b/src/java.desktop/unix/classes/sun/font/FcFontConfiguration.java
+index 567e8bea83..0bbf13239e 100644
+--- a/src/java.desktop/unix/classes/sun/font/FcFontConfiguration.java
++++ b/src/java.desktop/unix/classes/sun/font/FcFontConfiguration.java
+@@ -356,7 +356,10 @@ public class FcFontConfiguration extends FontConfiguration {
+             String userDir = System.getProperty("user.home");
+             String version = System.getProperty("java.version");
+             String fs = File.separator;
+-            String dir = userDir+fs+".java"+fs+"fonts"+fs+version;
++            String xdgCacheDir = System.getenv("XDG_CACHE_HOME");
++            if (xdgCacheDir == null)
++                xdgCacheDir = userDir+fs+".cache";
++            String dir = xdgCacheDir+fs+"java"+fs+"fonts"+fs+version;
+             String lang = SunToolkit.getStartupLocale().getLanguage();
+             String name = "fcinfo-"+fileVersion+"-"+hostname+"-"+
+                 osName+"-"+osVersion+"-"+lang+".properties";
+-- 
+2.38.1
+
+
+From cdc5f24098643e74418a03b229de05d038ad226d Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Tue, 13 Dec 2022 22:56:22 +0200
+Subject: [PATCH 2/2] Move default preferences directory to `XDG_CONFIG_HOME`
+
+---
+ .../java/util/prefs/FileSystemPreferences.java       | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/java.prefs/unix/classes/java/util/prefs/FileSystemPreferences.java b/src/java.prefs/unix/classes/java/util/prefs/FileSystemPreferences.java
+index 0099e1ff8d..bba4ed02ba 100644
+--- a/src/java.prefs/unix/classes/java/util/prefs/FileSystemPreferences.java
++++ b/src/java.prefs/unix/classes/java/util/prefs/FileSystemPreferences.java
+@@ -113,9 +113,15 @@ class FileSystemPreferences extends AbstractPreferences {
+     private static void setupUserRoot() {
+         AccessController.doPrivileged(new PrivilegedAction<Void>() {
+             public Void run() {
+-                userRootDir =
+-                      new File(System.getProperty("java.util.prefs.userRoot",
+-                      System.getProperty("user.home")), ".java/.userPrefs");
++                String preferredUserRoot = System.getProperty("java.util.prefs.userRoot");
++                String userHome = System.getProperty("user.home");
++                String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
++                if (xdgConfigHome == null)
++                    xdgConfigHome = userHome + File.separator + ".config";
++                if (preferredUserRoot == null)
++                    userRootDir = new File(xdgConfigHome, "java" + File.separator + "userPrefs");
++                else
++                    userRootDir = new File(preferredUserRoot, ".java/.userPrefs");
+                 // Attempt to create root dir if it does not yet exist.
+                 if (!userRootDir.exists()) {
+                     if (userRootDir.mkdirs()) {
+-- 
+2.38.1
+
