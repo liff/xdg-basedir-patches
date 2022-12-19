@@ -1,0 +1,34 @@
+diff --git a/Ghidra/RuntimeScripts/Linux/ghidraRun b/Ghidra/RuntimeScripts/Linux/ghidraRun
+index 82ebb197a..073ac7343 100755
+--- a/Ghidra/RuntimeScripts/Linux/ghidraRun
++++ b/Ghidra/RuntimeScripts/Linux/ghidraRun
+@@ -16,4 +16,4 @@ SCRIPT_FILE="$(readlink -f "$0" 2>/dev/null || readlink "$0" 2>/dev/null || echo
+ SCRIPT_DIR="${SCRIPT_FILE%/*}"
+ 
+ # Launch Ghidra
+-"${SCRIPT_DIR}"/support/launch.sh bg jdk Ghidra "${MAXMEM}" "" ghidra.GhidraRun "$@"
++"${SCRIPT_DIR}"/support/launch.sh fg jdk Ghidra "${MAXMEM}" "" ghidra.GhidraRun "$@"
+diff --git a/Ghidra/RuntimeScripts/Linux/support/launch.sh b/Ghidra/RuntimeScripts/Linux/support/launch.sh
+index 3340dfeef..f27653b89 100755
+--- a/Ghidra/RuntimeScripts/Linux/support/launch.sh
++++ b/Ghidra/RuntimeScripts/Linux/support/launch.sh
+@@ -131,19 +131,6 @@ if ! [ -x "$(command -v java)" ] ; then
+ fi
+ 
+ # Get the JDK that will be used to launch Ghidra
+-JAVA_HOME="$(java -cp "${LS_CPATH}" LaunchSupport "${INSTALL_DIR}" ${JAVA_TYPE_ARG} -save)"
+-if [ ! $? -eq 0 ]; then
+-	# No JDK has been setup yet.  Let the user choose one.
+-	java -cp "${LS_CPATH}" LaunchSupport "${INSTALL_DIR}" ${JAVA_TYPE_ARG} -ask
+-	
+-	# Now that the user chose one, try again to get the JDK that will be used to launch Ghidra
+-	JAVA_HOME="$(java -cp "${LS_CPATH}" LaunchSupport "${INSTALL_DIR}" ${JAVA_TYPE_ARG} -save)"
+-	if [ ! $? -eq 0 ]; then
+-		echo
+-		echo "Failed to find a supported JDK.  Please refer to the Ghidra Installation Guide's Troubleshooting section."
+-		exit 1
+-	fi
+-fi
+ JAVA_CMD="${JAVA_HOME}/bin/java"
+ 
+ # Get the configurable VM arguments from the launch properties

@@ -1,0 +1,99 @@
+From 1f3a0c1ecefaf9b810c003d0990d6d43b7bf09e4 Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 18 Dec 2022 17:21:13 +0200
+Subject: [PATCH] Move configuration files to `XDG_CONFIG_HOME`
+
+---
+ packages/cli-repl/src/cli-repl.ts         | 14 +++++++-------
+ packages/cli-repl/src/config-directory.ts | 18 ++++++++++++++----
+ 2 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/packages/cli-repl/src/cli-repl.ts b/packages/cli-repl/src/cli-repl.ts
+index 2c323e58..7c94d972 100644
+--- a/packages/cli-repl/src/cli-repl.ts
++++ b/packages/cli-repl/src/cli-repl.ts
+@@ -438,9 +438,9 @@ class CliRepl implements MongoshIOProvider {
+     if (this.cliOptions.norc) {
+       return;
+     }
+-    const legacyPath = this.shellHomeDirectory.rcPath('.mongorc.js');
+-    const mongoshrcPath = this.shellHomeDirectory.rcPath('.mongoshrc.js');
+-    const mongoshrcMisspelledPath = this.shellHomeDirectory.rcPath('.mongoshrc');
++    const legacyPath = path.join(os.homedir(), '.mongorcjs');
++    const mongoshrcPath = this.shellHomeDirectory.rcPath('mongoshrc.js');
++    const mongoshrcMisspelledPath = this.shellHomeDirectory.rcPath('mongoshrc');
+ 
+     let hasMongoshRc = false;
+     try {
+@@ -452,7 +452,7 @@ class CliRepl implements MongoshIOProvider {
+         this.bus.emit('mongosh:mongoshrc-load');
+         await this.mongoshRepl.loadExternalFile(mongoshrcPath);
+       } catch (err: any) {
+-        this.output.write(this.clr('Error while running ~/.mongoshrc.js:\n', 'mongosh:warning'));
++        this.output.write(this.clr('Error while running ' + mongoshrcPath + ':\n', 'mongosh:warning'));
+         this.output.write(this.mongoshRepl.writer(err) + '\n');
+       }
+       return;
+@@ -470,8 +470,8 @@ class CliRepl implements MongoshIOProvider {
+     if (hasLegacyRc) {
+       this.bus.emit('mongosh:mongoshrc-mongorc-warn');
+       const msg =
+-        'Warning: Found ~/.mongorc.js, but not ~/.mongoshrc.js. ~/.mongorc.js will not be loaded.\n' +
+-        '  You may want to copy or rename ~/.mongorc.js to ~/.mongoshrc.js.\n';
++        'Warning: Found ' + legacyPath +', but not ' + mongoshrcPath + '. ' + legacyPath + ' will not be loaded.\n' +
++        '  You may want to copy or rename ' + legacyPath + ' to ' + mongoshrcPath + '.\n';
+       this.output.write(this.clr(msg, 'mongosh:warning'));
+       return;
+     }
+@@ -483,7 +483,7 @@ class CliRepl implements MongoshIOProvider {
+     } catch { /* file not present */ }
+     if (hasMisspelledFilename) {
+       const msg =
+-        'Warning: Found ~/.mongoshrc, but not ~/.mongoshrc.js. Did you forget to add .js?\n';
++        'Warning: Found ' + mongoshrcMisspelledPath + ', but not ' + mongoshrcPath + '. Did you forget to add .js?\n';
+       this.output.write(this.clr(msg, 'mongosh:warning'));
+     }
+   }
+diff --git a/packages/cli-repl/src/config-directory.ts b/packages/cli-repl/src/config-directory.ts
+index 2862e0d4..665d228c 100644
+--- a/packages/cli-repl/src/config-directory.ts
++++ b/packages/cli-repl/src/config-directory.ts
+@@ -145,21 +145,31 @@ export class ConfigManager<Config> extends EventEmitter {
+ export function getStoragePaths(): ShellHomePaths {
+   let shellLocalDataPath;
+   let shellRoamingDataPath;
++  let shellRcPath;
+   if (process.platform === 'win32') {
+     const appData = process.env.APPDATA;
+     const localAppData = process.env.LOCALAPPDATA ?? process.env.APPDATA;
+     if (localAppData && appData) {
+       shellLocalDataPath = path.join(localAppData, 'mongodb', 'mongosh');
+       shellRoamingDataPath = path.join(appData, 'mongodb', 'mongosh');
++    } else {
++      const homedir = path.join(os.homedir(), '.mongodb', 'mongosh');
++      shellLocalDataPath ??= homedir;
++      shellRoamingDataPath ??= homedir;
+     }
++    shellRcPath = os.homedir();
++  } else {
++    const xdgConfigHome = process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config');
++    const xdgCacheHome = process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), '.cache');
++    const xdgStateHome = process.env.XDG_STATE_HOME ?? path.join(os.homedir(), '.local', 'state');
++    shellLocalDataPath = path.join(xdgCacheHome, 'mongosh');
++    shellRoamingDataPath = path.join(xdgStateHome, 'mongosh');
++    shellRcPath = path.join(xdgConfigHome, 'mongosh');
+   }
+-  const homedir = path.join(os.homedir(), '.mongodb', 'mongosh');
+-  shellLocalDataPath ??= homedir;
+-  shellRoamingDataPath ??= homedir;
+   return {
+     shellLocalDataPath,
+     shellRoamingDataPath,
+-    shellRcPath: os.homedir()
++    shellRcPath,
+   };
+ }
+ 
+-- 
+2.38.1
+

@@ -1,0 +1,28 @@
+From 8b3c07936fc52c355983f21eabb32e9ba028001a Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 18 Dec 2022 17:09:55 +0200
+Subject: [PATCH] Move cache to `XDG_CACHE_HOME`
+
+---
+ awscli/customizations/assumerole.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/awscli/customizations/assumerole.py b/awscli/customizations/assumerole.py
+index b25a80b2d..cdea14a5c 100644
+--- a/awscli/customizations/assumerole.py
++++ b/awscli/customizations/assumerole.py
+@@ -5,7 +5,10 @@ from botocore.exceptions import ProfileNotFound
+ from botocore.credentials import JSONFileCache
+ 
+ LOG = logging.getLogger(__name__)
+-CACHE_DIR = os.path.expanduser(os.path.join('~', '.aws', 'cli', 'cache'))
++if xdg_cache_home := os.getenv('XDG_CACHE_HOME'):
++    CACHE_DIR = os.path.join(xdg_cache_home, 'aws', 'cli')
++else:
++    CACHE_DIR = os.path.expanduser(os.path.join('~', '.cache', 'aws', 'cli'))
+ 
+ 
+ def register_assume_role_provider(event_handlers):
+-- 
+2.38.1
+

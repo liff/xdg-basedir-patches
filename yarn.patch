@@ -1,0 +1,34 @@
+From 45b7ece997c6107c720a5ab98966798fc2461e03 Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 18 Dec 2022 17:17:52 +0200
+Subject: [PATCH] Move `.yarnrc` to `XDG_CONFIG_HOME`
+
+---
+ src/registries/yarn-registry.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/registries/yarn-registry.js b/src/registries/yarn-registry.js
+index b12d0c7c..3207ed9f 100644
+--- a/src/registries/yarn-registry.js
++++ b/src/registries/yarn-registry.js
+@@ -3,7 +3,7 @@
+ import type Reporter from '../reporters/base-reporter.js';
+ import type RequestManager from '../util/request-manager.js';
+ import type {ConfigRegistries} from './index.js';
+-import {YARN_REGISTRY} from '../constants.js';
++import {YARN_REGISTRY, CONFIG_DIRECTORY} from '../constants.js';
+ import NpmRegistry from './npm-registry.js';
+ import {stringify, parse} from '../lockfile';
+ import * as fs from '../util/fs.js';
+@@ -53,7 +53,7 @@ export default class YarnRegistry extends NpmRegistry {
+   ) {
+     super(cwd, registries, requestManager, reporter, enableDefaultRc, extraneousRcFiles);
+ 
+-    this.homeConfigLoc = path.join(userHome, '.yarnrc');
++    this.homeConfigLoc = path.join(CONFIG_DIRECTORY, 'yarnrc');
+     this.homeConfig = {};
+   }
+ 
+-- 
+2.38.1
+

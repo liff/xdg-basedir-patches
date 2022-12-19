@@ -1,0 +1,61 @@
+From 57aa4aa914ed7382919e0879b6d85bac70119177 Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 18 Dec 2022 17:06:44 +0200
+Subject: [PATCH] Move settings directory to `XDG_CONFIG_HOME`
+
+---
+ libgphoto2/gphoto2-setting.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/libgphoto2/gphoto2-setting.c b/libgphoto2/gphoto2-setting.c
+index 0a5b770b6..417e586a4 100644
+--- a/libgphoto2/gphoto2-setting.c
++++ b/libgphoto2/gphoto2-setting.c
+@@ -172,14 +172,21 @@ static int
+ load_settings (void)
+ {
+ 	FILE *f;
++	char config_home[1024];
+ 	char buf[1024], *id, *key, *value;
+ 
++	if (getenv ("XDG_CONFIG_HOME")) {
++		snprintf (config_home, sizeof(config_home), "%s/gphoto", getenv ("XDG_CONFIG_HOME"));
++	} else {
++		snprintf (config_home, sizeof(config_home), "%s/.config/gphoto", getenv ("HOME"));
++	}
++
+ 	/* Make sure the directories are created */
+ #ifdef WIN32
+ 	SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, buf);
+ 	strcat (buf, "\\.gphoto");
+ #else
+-	snprintf (buf, sizeof(buf), "%s/.gphoto", getenv ("HOME"));
++	strcpy(buf, config_home);
+ #endif
+ 	GP_LOG_D ("Creating gphoto config directory ('%s')", buf);
+ 	(void)gp_system_mkdir (buf);
+@@ -189,7 +196,7 @@ load_settings (void)
+ 	SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, buf);
+ 	strcat(buf, "\\.gphoto\\settings");
+ #else
+-	snprintf(buf, sizeof(buf), "%s/.gphoto/settings", getenv("HOME"));
++	snprintf(buf, sizeof(buf), "%s/settings", config_home);
+ #endif
+ 
+ 	if (verify_settings(buf) != GP_OK)
+@@ -236,7 +243,11 @@ save_settings (void)
+ 	SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, buf);
+ 	strcat(buf, "\\.gphoto\\settings");
+ #else
+-	snprintf (buf, sizeof(buf), "%s/.gphoto/settings", getenv ("HOME"));
++	if (getenv ("XDG_CONFIG_HOME")) {
++		snprintf (buf, sizeof(buf), "%s/gphoto/settings", getenv ("XDG_CONFIG_HOME"));
++	} else {
++		snprintf (buf, sizeof(buf), "%s/.config/gphoto/settings", getenv ("HOME"));
++	}
+ #endif
+ 
+ 
+-- 
+2.38.1
+

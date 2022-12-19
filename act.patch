@@ -1,0 +1,36 @@
+From cc5ce458e5eea31c7c314752bae822570601f03c Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 18 Dec 2022 17:12:59 +0200
+Subject: [PATCH] Always prefer `XDG_CONFIG_HOME`
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+And remove the leading dot 🙄
+---
+ cmd/root.go | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/cmd/root.go b/cmd/root.go
+index 2a0baf0..5a0d7cd 100644
+--- a/cmd/root.go
++++ b/cmd/root.go
+@@ -97,13 +97,12 @@ func configLocations() []string {
+ 	// reference: https://specifications.freedesktop.org/basedir-spec/latest/ar01s03.html
+ 	var actrcXdg string
+ 	if xdg, ok := os.LookupEnv("XDG_CONFIG_HOME"); ok && xdg != "" {
+-		actrcXdg = filepath.Join(xdg, ".actrc")
++		actrcXdg = filepath.Join(xdg, "actrc")
+ 	} else {
+-		actrcXdg = filepath.Join(home, ".config", ".actrc")
++		actrcXdg = filepath.Join(home, ".config", "actrc")
+ 	}
+ 
+ 	return []string{
+-		filepath.Join(home, ".actrc"),
+ 		actrcXdg,
+ 		filepath.Join(".", ".actrc"),
+ 	}
+-- 
+2.38.1
+
