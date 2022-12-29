@@ -52,17 +52,29 @@
             installPhase = (old.installPhase or "") + ''
               mv $out/bin/slack $out/bin/.slack+pki
               makeWrapper $out/bin/.slack+pki $out/bin/slack \
-                --set LD_PRELOAD ${noPki}/lib/${noPki.libName}
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
             '';
           });
           discord = prev.discord.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
               mv $out/bin/discord $out/bin/.discord+pki
               makeWrapper $out/bin/.discord+pki $out/bin/discord \
-                --set LD_PRELOAD ${noPki}/lib/${noPki.libName}
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
             '';
           });
-        };
+        } // (if prev ? intellij-idea-ultimate then {
+          intellij-idea-ultimate = prev.intellij-idea-ultimate.overrideAttrs (old: {
+            preFixup = (old.preFixup or "") + ''
+              gappsWrapperArgs+=(--prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName})
+            '';
+          });
+        } else {}) // (if prev ? intellij-idea-community then {
+          intellij-idea-community = prev.intellij-idea-community.overrideAttrs (old: {
+            preFixup = (old.preFixup or "") + ''
+              gappsWrapperArgs+=(--prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName})
+            '';
+          });
+        } else {});
 
     nixosModules.default = { pkgs, ... }: {
       nixpkgs.overlays = [ self.overlays.default ];
