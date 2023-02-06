@@ -1,0 +1,128 @@
+From c9f594a3f2978e0e93e10b69b2560b54adea74dd Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Fri, 30 Dec 2022 14:55:44 +0200
+Subject: [PATCH] Use XDG base directories
+
+---
+ checkpoint.go                                |  6 ++---
+ internal/command/cliconfig/cliconfig.go      |  4 ++++
+ internal/command/cliconfig/config_unix.go    | 24 +++++++++++++++++---
+ internal/command/cliconfig/config_windows.go |  9 ++++++++
+ 4 files changed, 37 insertions(+), 6 deletions(-)
+
+diff --git a/checkpoint.go b/checkpoint.go
+index 31cc29bf75..a04c195ae7 100644
+--- a/checkpoint.go
++++ b/checkpoint.go
+@@ -26,7 +26,7 @@ func runCheckpoint(c *cliconfig.Config) {
+ 		return
+ 	}
+ 
+-	configDir, err := cliconfig.ConfigDir()
++	cacheDir, err := cliconfig.CacheDir()
+ 	if err != nil {
+ 		log.Printf("[ERR] Checkpoint setup error: %s", err)
+ 		checkpointResult <- nil
+@@ -38,7 +38,7 @@ func runCheckpoint(c *cliconfig.Config) {
+ 		version += fmt.Sprintf("-%s", VersionPrerelease)
+ 	}
+ 
+-	signaturePath := filepath.Join(configDir, "checkpoint_signature")
++	signaturePath := filepath.Join(cacheDir, "checkpoint_signature")
+ 	if c.DisableCheckpointSignature {
+ 		log.Printf("[INFO] Checkpoint signature disabled")
+ 		signaturePath = ""
+@@ -48,7 +48,7 @@ func runCheckpoint(c *cliconfig.Config) {
+ 		Product:       "terraform",
+ 		Version:       version,
+ 		SignatureFile: signaturePath,
+-		CacheFile:     filepath.Join(configDir, "checkpoint_cache"),
++		CacheFile:     filepath.Join(cacheDir, "checkpoint_cache"),
+ 	})
+ 	if err != nil {
+ 		log.Printf("[ERR] Checkpoint error: %s", err)
+diff --git a/internal/command/cliconfig/cliconfig.go b/internal/command/cliconfig/cliconfig.go
+index 7f3b1aa73d..ba6ca486bc 100644
+--- a/internal/command/cliconfig/cliconfig.go
++++ b/internal/command/cliconfig/cliconfig.go
+@@ -81,6 +81,10 @@ func ConfigDir() (string, error) {
+ 	return configDir()
+ }
+ 
++func CacheDir() (string, error) {
++	return cacheDir()
++}
++
+ // LoadConfig reads the CLI configuration from the various filesystem locations
+ // and from the environment, returning a merged configuration along with any
+ // diagnostics (errors and warnings) encountered along the way.
+diff --git a/internal/command/cliconfig/config_unix.go b/internal/command/cliconfig/config_unix.go
+index 6dc1450b23..c1f94ddbc8 100644
+--- a/internal/command/cliconfig/config_unix.go
++++ b/internal/command/cliconfig/config_unix.go
+@@ -11,21 +11,39 @@ import (
+ )
+ 
+ func configFile() (string, error) {
+-	dir, err := homeDir()
++	dir, err := configDir()
+ 	if err != nil {
+ 		return "", err
+ 	}
+ 
+-	return filepath.Join(dir, ".terraformrc"), nil
++	return filepath.Join(dir, "rc"), nil
+ }
+ 
+ func configDir() (string, error) {
++	if home := os.Getenv("XDG_CONFIG_HOME"); home != "" {
++		return filepath.Join(home, "terraform"), nil
++	}
++
+ 	dir, err := homeDir()
+ 	if err != nil {
+ 		return "", err
+ 	}
+ 
+-	return filepath.Join(dir, ".terraform.d"), nil
++	return filepath.Join(dir, ".config", "terraform"), nil
++}
++
++
++func cacheDir() (string, error) {
++	if home := os.Getenv("XDG_CACHE_HOME"); home != "" {
++		return filepath.Join(home, "terraform"), nil
++	}
++
++	dir, err := homeDir()
++	if err != nil {
++		return "", err
++	}
++
++	return filepath.Join(dir, ".cache", "terraform"), nil
+ }
+ 
+ func homeDir() (string, error) {
+diff --git a/internal/command/cliconfig/config_windows.go b/internal/command/cliconfig/config_windows.go
+index 8f232fd5b6..c860cf726b 100644
+--- a/internal/command/cliconfig/config_windows.go
++++ b/internal/command/cliconfig/config_windows.go
+@@ -34,6 +34,15 @@ func configDir() (string, error) {
+ 	return filepath.Join(dir, "terraform.d"), nil
+ }
+ 
++func cacheDir() (string, error) {
++	dir, err := homeDir()
++	if err != nil {
++		return "", err
++	}
++
++	return filepath.Join(dir, "terraform.cache"), nil
++}
++
+ func homeDir() (string, error) {
+ 	b := make([]uint16, syscall.MAX_PATH)
+ 
+-- 
+2.38.1
+

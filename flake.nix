@@ -40,21 +40,9 @@
       final: prev:
         let noPki = noPkiDrv final; in {
           act = addPatch prev.act ./act.patch;
+
           awscli2 = addPatch prev.awscli2 ./awscli2.patch;
-          ghidra = final.callPackage ./ghidra { };
-          libgphoto2 = addPatch prev.libgphoto2 ./libgphoto2.patch;
-          mongosh = addPatch prev.mongosh ./mongosh.patch;
-          openjdk11 = addPatch prev.openjdk11 ./openjdk-11u.patch;
-          openjdk17 = addPatch prev.openjdk17 ./openjdk-17u.patch;
-          openjdk19 = addPatch prev.openjdk19 ./openjdk-17u.patch;
-          yarn = addPatch prev.yarn ./yarn.patch;
-          slack = prev.slack.overrideAttrs (old: {
-            installPhase = (old.installPhase or "") + ''
-              mv $out/bin/slack $out/bin/.slack+pki
-              makeWrapper $out/bin/.slack+pki $out/bin/slack \
-                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
-            '';
-          });
+
           discord = prev.discord.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
               mv $out/bin/discord $out/bin/.discord+pki
@@ -62,6 +50,37 @@
                 --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
             '';
           });
+
+          ghidra = final.callPackage ./ghidra { };
+
+          libgphoto2 = addPatch prev.libgphoto2 ./libgphoto2.patch;
+
+          # mongosh = addPatch prev.mongosh ./mongosh.patch;
+
+          openjdk11 = addPatch prev.openjdk11 ./openjdk-11u.patch;
+          openjdk17 = addPatch prev.openjdk17 ./openjdk-17u.patch;
+          openjdk19 = addPatch prev.openjdk19 ./openjdk-17u.patch;
+
+          slack = prev.slack.overrideAttrs (old: {
+            installPhase = (old.installPhase or "") + ''
+              mv $out/bin/slack $out/bin/.slack+pki
+              makeWrapper $out/bin/.slack+pki $out/bin/slack \
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
+            '';
+          });
+
+          terraform = addPatch prev.terraform ./terraform.patch;
+
+          vscode = prev.vscode.overrideAttrs (old: {
+            postInstall = (old.postInstall or "") + ''
+              mv $out/bin/code $out/bin/.code+pki
+              makeWrapper $out/bin/.code+pki $out/bin/code \
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
+            '';
+          });
+
+          # yarn = addPatch prev.yarn ./yarn.patch;
+
         } // (if prev ? intellij-idea-ultimate then {
           intellij-idea-ultimate = prev.intellij-idea-ultimate.overrideAttrs (old: {
             preFixup = (old.preFixup or "") + ''
@@ -77,6 +96,7 @@
         } else {});
 
     nixosModules.default = { pkgs, ... }: {
+      imports = [ ./session-variables.nix ];
       nixpkgs.overlays = [ self.overlays.default ];
     };
   } // flake-utils.lib.eachDefaultSystem (system:
@@ -88,12 +108,33 @@
           rnix-lsp
           gnumake
           clang-tools
-          slack
-          discord
+          (python3.withPackages (pyPkgs: with pyPkgs; [
+            black
+            isort
+            pylint
+            bandit
+            autopep8
+            flake8
+            mypy
+          ]))
         ];
 
         nativeBuildInputs = with pkgs; [
           gcc
+        ];
+      };
+
+      devShells.use = pkgs.mkShell {
+        packages = with pkgs; [
+          act
+          awscli2
+          discord
+          ghidra
+          gphoto2
+          mongosh
+          slack
+          terraform
+          yarn
         ];
       };
     }
