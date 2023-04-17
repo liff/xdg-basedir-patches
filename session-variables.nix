@@ -90,6 +90,8 @@ in {
 
     MPLAYER_HOME = "${config}/mplayer";
 
+    GRIPHOME = "${cache}/grip";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = ansibleData;
 
