@@ -61,6 +61,14 @@
           openjdk17 = addPatch prev.openjdk17 ./openjdk-17u.patch;
           openjdk19 = addPatch prev.openjdk19 ./openjdk-17u.patch;
 
+          signal-desktop = prev.signal-desktop.overrideAttrs (old: {
+            installPhase = (old.installPhase or "") + ''
+              mv $out/bin/signal-desktop $out/bin/.signal-desktop+pki
+              makeWrapper $out/bin/.signal-desktop+pki $out/bin/signal-desktop \
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
+            '';
+          });
+
           slack = prev.slack.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
               mv $out/bin/slack $out/bin/.slack+pki
@@ -132,6 +140,7 @@
           ghidra
           gphoto2
           mongosh
+          signal-desktop
           slack
           terraform
           yarn
