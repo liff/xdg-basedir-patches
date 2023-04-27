@@ -77,6 +77,14 @@
             '';
           });
 
+          spotify = prev.spotify.overrideAttrs (old: {
+            installPhase = (old.installPhase or "") + ''
+              mv $out/bin/spotify $out/bin/.spotify+pki
+              makeWrapper $out/bin/.spotify+pki $out/bin/spotify \
+                --prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName}
+            '';
+          });
+
           terraform = addPatch prev.terraform ./terraform.patch;
 
           vscode = prev.vscode.overrideAttrs (old: {
