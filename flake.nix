@@ -147,6 +147,9 @@
           discord
           ghidra
           gphoto2
+          openjdk11
+          openjdk17
+          openjdk19
           mongosh
           signal-desktop
           slack
