@@ -1,8 +1,6 @@
 # Taken from nixpkgs pkgs/tools/security/ghidra/build.nix and updated a bit.
 
 { stdenv
-, fetchzip
-, fetchurl
 , fetchFromGitHub
 , lib
 , gradle_7
@@ -11,25 +9,24 @@
 , openjdk17
 , unzip
 , makeDesktopItem
-, autoPatchelfHook
 , icoutils
 , xcbuild
-, protobuf3_17
-, libredirect
+, protobuf
 }:
 
 let
-  gradle = gradle_7;
   pkg_path = "$out/lib/ghidra";
   pname = "ghidra";
-  version = "10.2.3";
+  version = "10.3.1";
 
   src = fetchFromGitHub {
     owner = "NationalSecurityAgency";
     repo = "Ghidra";
     rev = "Ghidra_${version}_build";
-    sha256 = "sha256-YhjKRlFlF89H05NsTS69SB108rNiiWijvZZY9fR+Ebc=";
+    hash = "sha256-KYZAu+15rcTkdfVQdKgAlVv3FxREUH0IIgYBb0qjdO8=";
   };
+
+  gradle = gradle_7;
 
   desktopItem = makeDesktopItem {
     name = "ghidra";
@@ -84,7 +81,7 @@ HERE
       export HOME="$NIX_BUILD_TOP/home"
       mkdir -p "$HOME"
       export JAVA_TOOL_OPTIONS="-Duser.home='$HOME'"
-      export GRADLE_USER_HOME="$HOME/.gradle"
+      export GRADLE_USER_HOME="$HOME/_gradle"
 
       # First, fetch the static dependencies.
       gradle --no-daemon --info -Dorg.gradle.java.home=${openjdk17} -I gradle/support/fetchDependencies.gradle init
@@ -101,17 +98,17 @@ HERE
     '';
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
-    outputHash = "sha256-5Mukfkea5cyg9Y5tk+MKxWq2QT8JPkB81OyPLx+v8yc=";
+    outputHash = "sha256-g2aBa/v2rbIyJRKpRzwzA0dEV2buwUkTUXrYqgFUWAA=";
   };
 
-in stdenv.mkDerivation rec {
+in stdenv.mkDerivation {
   inherit pname version src;
 
   nativeBuildInputs = [
     gradle unzip makeWrapper icoutils
   ] ++ lib.optional stdenv.isDarwin xcbuild;
 
-  buildInputs = [ protobuf3_17 ];
+  buildInputs = [ protobuf ];
 
   dontStrip = true;
 
@@ -167,7 +164,8 @@ in stdenv.mkDerivation rec {
       binaryBytecode  # deps
     ];
     license = licenses.asl20;
-    maintainers = with maintainers; [ roblabla ];
+    maintainers = with maintainers; [ roblabla liff ];
+    broken = stdenv.isDarwin && stdenv.isx86_64;
   };
 
 }

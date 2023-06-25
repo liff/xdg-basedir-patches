@@ -1,15 +1,16 @@
-From b95cba43fc20ff0651a6bef14a9c486535d12a91 Mon Sep 17 00:00:00 2001
-From: roblabla <unfiltered@roblab.la>
-Date: Tue, 28 Dec 2021 14:20:30 +0100
+From 5a6387cb8b43306c8aa4ead4344bf3380169d531 Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Mon, 15 May 2023 14:19:28 +0300
 Subject: [PATCH 1/2] Use protobuf gradle plugin
 
 ---
  Ghidra/Debug/Debugger-gadp/build.gradle | 76 +++----------------------
+ Ghidra/Debug/Debugger-isf/build.gradle  | 72 +++--------------------
  build.gradle                            |  6 ++
- 2 files changed, 15 insertions(+), 67 deletions(-)
+ 3 files changed, 22 insertions(+), 132 deletions(-)
 
 diff --git a/Ghidra/Debug/Debugger-gadp/build.gradle b/Ghidra/Debug/Debugger-gadp/build.gradle
-index 1b4922f66..3d2ef8856 100644
+index f4dbd3cd0..e10c8188a 100644
 --- a/Ghidra/Debug/Debugger-gadp/build.gradle
 +++ b/Ghidra/Debug/Debugger-gadp/build.gradle
 @@ -23,42 +23,19 @@ apply from: "${rootProject.projectDir}/gradle/javaTestProject.gradle"
@@ -28,49 +29,49 @@ index 1b4922f66..3d2ef8856 100644
  def platform = getCurrentPlatformName()
  
 +buildscript {
-+  dependencies {
-+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.18'
-+  }
++	dependencies {
++		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.18'
++	}
 +}
 +
  dependencies {
--	allProtocArtifacts 'com.google.protobuf:protoc:3.17.3:windows-x86_64@exe'
--	allProtocArtifacts 'com.google.protobuf:protoc:3.17.3:linux-x86_64@exe'
--	allProtocArtifacts 'com.google.protobuf:protoc:3.17.3:linux-aarch_64@exe'
--	allProtocArtifacts 'com.google.protobuf:protoc:3.17.3:osx-x86_64@exe'
--	allProtocArtifacts 'com.google.protobuf:protoc:3.17.3:osx-aarch_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:windows-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:linux-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:linux-aarch_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:osx-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:osx-aarch_64@exe'
 -
 -	if (isCurrentWindows()) {
--		protocArtifact 'com.google.protobuf:protoc:3.17.3:windows-x86_64@exe'
+-		protocArtifact 'com.google.protobuf:protoc:3.21.8:windows-x86_64@exe'
 -	}
 -	if (isCurrentLinux()) {
 -		if (platform.endsWith("x86_64")) {
--			protocArtifact 'com.google.protobuf:protoc:3.17.3:linux-x86_64@exe'
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:linux-x86_64@exe'
 -		}
 -		else {
--			protocArtifact 'com.google.protobuf:protoc:3.17.3:linux-aarch_64@exe'
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:linux-aarch_64@exe'
 -		}
 -	}
 -	if (isCurrentMac()) {
 -		if (platform.endsWith("x86_64")) {
--			protocArtifact 'com.google.protobuf:protoc:3.17.3:osx-x86_64@exe'
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:osx-x86_64@exe'
 -		}
 -		else {
--			protocArtifact 'com.google.protobuf:protoc:3.17.3:osx-aarch_64@exe'
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:osx-aarch_64@exe'
 -		}
 -	}
 -
- 	api 'com.google.protobuf:protobuf-java:3.17.3'
  	api project(':Framework-AsyncComm')
  	api project(':Framework-Debugging')
-@@ -68,43 +45,8 @@ dependencies {
+ 	api project(':ProposedUtils')
+@@ -67,43 +44,8 @@ dependencies {
  	testImplementation project(path: ':Framework-Debugging', configuration: 'testArtifacts')
  }
  
 -/*protobuf {
 +protobuf {
  	protoc {
- 		artifact = 'com.google.protobuf:protoc:3.17.3'
+ 		artifact = 'com.google.protobuf:protoc:3.21.8'
  	}
 -}*/
 -
@@ -108,11 +109,106 @@ index 1b4922f66..3d2ef8856 100644
 -}
 -zipSourceSubproject.dependsOn generateProto
 -
+diff --git a/Ghidra/Debug/Debugger-isf/build.gradle b/Ghidra/Debug/Debugger-isf/build.gradle
+index 6bf945c2e..3225d095d 100644
+--- a/Ghidra/Debug/Debugger-isf/build.gradle
++++ b/Ghidra/Debug/Debugger-isf/build.gradle
+@@ -20,42 +20,18 @@ apply from: "${rootProject.projectDir}/gradle/javaTestProject.gradle"
+ apply from: "${rootProject.projectDir}/gradle/distributableGhidraModule.gradle"
+ 
+ apply plugin: 'eclipse'
++apply plugin: 'com.google.protobuf'
+ eclipse.project.name = 'Debug Debugger-isf'
+ 
+-configurations {
+-	allProtocArtifacts
+-	protocArtifact
+-}
+-
+ def platform = getCurrentPlatformName()
+ 
++buildscript {
++	dependencies {
++		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.18'
++	}
++}
++
+ dependencies {
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:windows-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:linux-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:linux-aarch_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:osx-x86_64@exe'
+-	allProtocArtifacts 'com.google.protobuf:protoc:3.21.8:osx-aarch_64@exe'
+-
+-	if (isCurrentWindows()) {
+-		protocArtifact 'com.google.protobuf:protoc:3.21.8:windows-x86_64@exe'
+-	}
+-	if (isCurrentLinux()) {
+-		if (platform.endsWith("x86_64")) {
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:linux-x86_64@exe'
+-		}
+-		else {
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:linux-aarch_64@exe'
+-		}
+-	}
+-	if (isCurrentMac()) {
+-		if (platform.endsWith("x86_64")) {
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:osx-x86_64@exe'
+-		}
+-		else {
+-			protocArtifact 'com.google.protobuf:protoc:3.21.8:osx-aarch_64@exe'
+-		}
+-	}
+-
+ 	api project(':Framework-AsyncComm')
+ 	api project(':Framework-Debugging')
+ 	api project(':ProposedUtils')
+@@ -64,40 +40,6 @@ dependencies {
+ 	testImplementation project(path: ':Framework-Debugging', configuration: 'testArtifacts')
+ }
+ 
+-task generateProto {
+-	ext.srcdir = file("src/main/proto")
+-	ext.src = fileTree(srcdir) {
+-		include "**/*.proto"
+-	}
+-	ext.outdir = file("build/generated/source/proto/main/java")
+-	outputs.dir(outdir)
+-	inputs.files(src)
+-	dependsOn(configurations.protocArtifact)
+-	doLast {
+-		def exe = configurations.protocArtifact.first()
+-		if (!isCurrentWindows()) {
+-			exe.setExecutable(true)
+-		}
+-		exec {
+-			commandLine exe, "--java_out=$outdir", "-I$srcdir"
+-			args src
+-		}
+-	}
+-}
+-
+-tasks.compileJava.dependsOn(tasks.generateProto)
+-tasks.eclipse.dependsOn(tasks.generateProto)
+-rootProject.tasks.prepDev.dependsOn(tasks.generateProto)
+-
+-sourceSets {
+-	main {
+-		java {
+-			srcDir tasks.generateProto.outdir
+-		}
+-	}
+-}
+-zipSourceSubproject.dependsOn generateProto
+-
+ // Include buildable native source in distribution
+ rootProject.assembleDistribution {
+     from (this.project.projectDir.toString()) {
 diff --git a/build.gradle b/build.gradle
-index dce3a5149..7a2e637ce 100644
+index b0c717fb1..5f56506a5 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -76,6 +76,12 @@ if (flatRepo.isDirectory()) {
+@@ -74,6 +74,12 @@ if (flatRepo.isDirectory()) {
  			jcenter()
  			flatDir name: "flat", dirs:["$flatRepo"]
  		}
@@ -126,30 +222,44 @@ index dce3a5149..7a2e637ce 100644
  }
  else {	
 -- 
-2.38.1
+2.40.1
 
 
-From cd5690e61f956baba87ca3f922b2dea86d25b189 Mon Sep 17 00:00:00 2001
+From 24ca8d360b91d0427e6299e80b59ef4a99681c1f Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 18 Dec 2022 15:43:32 +0200
+Date: Mon, 15 May 2023 14:19:45 +0300
 Subject: [PATCH 2/2] Use protoc from PATH, not from the artifact
 
 ---
  Ghidra/Debug/Debugger-gadp/build.gradle | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Ghidra/Debug/Debugger-isf/build.gradle  | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/Ghidra/Debug/Debugger-gadp/build.gradle b/Ghidra/Debug/Debugger-gadp/build.gradle
-index 3d2ef8856..3a3a2a12a 100644
+index e10c8188a..8915d950c 100644
 --- a/Ghidra/Debug/Debugger-gadp/build.gradle
 +++ b/Ghidra/Debug/Debugger-gadp/build.gradle
-@@ -47,6 +47,6 @@ dependencies {
+@@ -46,6 +46,6 @@ dependencies {
  
  protobuf {
  	protoc {
--		artifact = 'com.google.protobuf:protoc:3.17.3'
+-		artifact = 'com.google.protobuf:protoc:3.21.8'
 +		artifact = null
  	}
  }
+diff --git a/Ghidra/Debug/Debugger-isf/build.gradle b/Ghidra/Debug/Debugger-isf/build.gradle
+index 3225d095d..b01fd338e 100644
+--- a/Ghidra/Debug/Debugger-isf/build.gradle
++++ b/Ghidra/Debug/Debugger-isf/build.gradle
+@@ -48,3 +48,8 @@ rootProject.assembleDistribution {
+     }
+ }
+ 
++protobuf {
++	protoc {
++		artifact = null
++	}
++}
 -- 
-2.38.1
+2.40.1
 

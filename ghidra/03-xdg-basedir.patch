@@ -1,7 +1,7 @@
-From e16652a3e67e3d0e8b8808c3c35540d3cab80a6c Mon Sep 17 00:00:00 2001
+From 01ffc081f1048af1c414561fc937c984904acc2c Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:24:27 +0200
-Subject: [PATCH 1/7] Add `directories` dependency
+Subject: [PATCH 1/8] Add `directories` dependency
 
 ---
  Ghidra/Framework/Utility/Module.manifest      |   1 +
@@ -31,10 +31,10 @@ index c3de3b753..d7258b470 100644
 +}
 \ No newline at end of file
 diff --git a/Ghidra/RuntimeScripts/Linux/support/launch.sh b/Ghidra/RuntimeScripts/Linux/support/launch.sh
-index 3340dfeef..7f72dd995 100755
+index 97bb85470..efcf2d2a5 100755
 --- a/Ghidra/RuntimeScripts/Linux/support/launch.sh
 +++ b/Ghidra/RuntimeScripts/Linux/support/launch.sh
-@@ -108,7 +108,7 @@ if [ -f "${SUPPORT_DIR}/launch.properties" ]; then
+@@ -106,7 +106,7 @@ if [ -f "${SUPPORT_DIR}/launch.properties" ]; then
  
  	# Production Environment
  	INSTALL_DIR="${SUPPORT_DIR}/.."
@@ -423,13 +423,13 @@ index 000000000..a612ad981
 +  This Source Code Form is "Incompatible With Secondary Licenses", as
 +  defined by the Mozilla Public License, v. 2.0.
 -- 
-2.38.1
+2.40.1
 
 
-From 207fb7853992f8610f4fb43a300713123bf2e765 Mon Sep 17 00:00:00 2001
+From d353fc1aa56e7b24483cc571a6bb90cce600e677 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:26:14 +0200
-Subject: [PATCH 2/7] Use a project directory for `getDefaultUserSettingsDir`
+Subject: [PATCH 2/8] Use a project directory for `getDefaultUserSettingsDir`
 
 ---
  .../java/ghidra/framework/GenericRunInfo.java |  6 +++---
@@ -511,13 +511,13 @@ index ea12a661f..319fd4211 100644
  		if (SystemUtilities.isInDevelopmentMode()) {
  			// Add the application's installation directory name to this variable, so that each 
 -- 
-2.38.1
+2.40.1
 
 
-From 266881e126138fa83840ab472f20eeda59b51faa Mon Sep 17 00:00:00 2001
+From fb4e79effbb23d4fe7dbcbfbd54f5275136c1c51 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:29:35 +0200
-Subject: [PATCH 3/7] Use a project directory for `getDefaultUserCacheDir`
+Subject: [PATCH 3/8] Use a project directory for `getDefaultUserCacheDir`
 
 ---
  .../application/ApplicationUtilities.java     | 37 +++++--------------
@@ -587,13 +587,13 @@ index 319fd4211..3466d6b49 100644
  
  	/**
 -- 
-2.38.1
+2.40.1
 
 
-From 15463539b94643093cf6934ffa8643d15093b84e Mon Sep 17 00:00:00 2001
+From 6d7b2be4cf8e330ba0e2761a69f789cdf0a48c78 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:32:54 +0200
-Subject: [PATCH 4/7] Use document directory for Ghidra scripts
+Subject: [PATCH 4/8] Use document directory for Ghidra scripts
 
 ---
  .../src/main/java/ghidra/app/script/GhidraScriptUtil.java     | 4 +++-
@@ -644,26 +644,26 @@ index ed083d01d..64c925b95 100644
  	/**
  	 * Creates a new Ghidra script project with the given name.
 -- 
-2.38.1
+2.40.1
 
 
-From 92de87103808ddc2466005d19890bfa5412c8fd9 Mon Sep 17 00:00:00 2001
+From 2bd0124a73928a9f0d753668feb48681579c5f5b Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:49:46 +0200
-Subject: [PATCH 5/7] Add a log directory and move `application.log` there
+Subject: [PATCH 5/8] Add a log directory and move `application.log` there
 
 ---
- .../main/java/ghidra/framework/Application.java |  2 +-
+ .../main/java/ghidra/framework/Application.java |  4 ++--
  .../java/ghidra/GhidraApplicationLayout.java    |  2 ++
  .../utility/application/ApplicationLayout.java  | 17 +++++++++++++++++
- .../application/ApplicationUtilities.java       | 16 ++++++++++++++++
- 4 files changed, 36 insertions(+), 1 deletion(-)
+ .../application/ApplicationUtilities.java       | 15 +++++++++++++++
+ 4 files changed, 36 insertions(+), 2 deletions(-)
 
 diff --git a/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java b/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
-index 854a81b69..f507cb454 100644
+index e67653b67..a24a971e2 100644
 --- a/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
 +++ b/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
-@@ -166,7 +166,7 @@ public class Application {
+@@ -167,10 +167,10 @@ public class Application {
  		app.loggingInitialized = true;
  
  		if (logFile == null) {
@@ -671,12 +671,16 @@ index 854a81b69..f507cb454 100644
 +			logFile = new File(app.layout.getUserLogDir(), "application.log");
  		}
  		if (scriptLogFile == null) {
- 			// Some clients pass null for the script file, as they do not support scripting.  In
+-			scriptLogFile = new File(app.layout.getUserSettingsDir(), "script.log");
++			scriptLogFile = new File(app.layout.getUserLogDir(), "script.log");
+ 		}
+ 
+ 		LoggingInitialization.setApplicationLogFile(logFile);
 diff --git a/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java b/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
-index 31423b883..5ccbf95b7 100644
+index ad3fd284d..9ec60682f 100644
 --- a/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
 +++ b/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
-@@ -56,6 +56,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
+@@ -55,6 +55,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
  		// User directories
  		userTempDir = ApplicationUtilities.getDefaultUserTempDir(getApplicationProperties());
  		userCacheDir = ApplicationUtilities.getDefaultUserCacheDir(getApplicationProperties());
@@ -684,16 +688,16 @@ index 31423b883..5ccbf95b7 100644
  		userSettingsDir = ApplicationUtilities.getDefaultUserSettingsDir(getApplicationProperties(),
  			getApplicationInstallationDir());
  
-@@ -99,6 +100,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
+@@ -98,6 +99,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
  		// User directories
  		userTempDir = ApplicationUtilities.getDefaultUserTempDir(getApplicationProperties());
  		userCacheDir = ApplicationUtilities.getDefaultUserCacheDir(getApplicationProperties());
 +		userLogDir = ApplicationUtilities.getDefaultUserLogDir(getApplicationProperties());
  		userSettingsDir = ApplicationUtilities.getDefaultUserSettingsDir(getApplicationProperties(),
  			getApplicationInstallationDir());
- 		
+ 
 diff --git a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
-index 50e58a44d..6e21c6a67 100644
+index 75cbb2414..386115576 100644
 --- a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
 +++ b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
 @@ -40,6 +40,7 @@ public abstract class ApplicationLayout {
@@ -704,8 +708,8 @@ index 50e58a44d..6e21c6a67 100644
  	protected File userSettingsDir;
  	protected ResourceFile patchDir;
  	protected ResourceFile extensionArchiveDir;
-@@ -99,6 +100,15 @@ public abstract class ApplicationLayout {
- 		return userCacheDir;
+@@ -90,6 +91,15 @@ public abstract class ApplicationLayout {
+ 		return userTempDir;
  	}
  
 +	/**
@@ -718,10 +722,10 @@ index 50e58a44d..6e21c6a67 100644
 +	}
 +
  	/**
- 	 * Gets the user settings directory from the application layout.
- 	 * 
-@@ -158,6 +168,13 @@ public abstract class ApplicationLayout {
- 			FileUtilities.setOwnerOnlyPermissions(userCacheDir);
+ 	 * Gets the user cache directory from the application layout.
+ 	 *
+@@ -151,6 +161,13 @@ public abstract class ApplicationLayout {
+ 			FileUtilities.setOwnerOnlyPermissions(userTempDir);
  		}
  
 +		if (userLogDir != null) {
@@ -731,15 +735,15 @@ index 50e58a44d..6e21c6a67 100644
 +			FileUtilities.setOwnerOnlyPermissions(userLogDir);
 +		}
 +
- 		if (userSettingsDir != null) {
- 			if (!FileUtilities.mkdirs(userSettingsDir)) {
- 				throw new IOException(
+ 		if (userCacheDir != null) {
+ 			if (!FileUtilities.mkdirs(userCacheDir)) {
+ 				throw new IOException("Failed to create user cache directory: " + userCacheDir);
 diff --git a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
-index 3466d6b49..9bbc0380c 100644
+index 3466d6b49..0269f3adf 100644
 --- a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
 +++ b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
-@@ -181,6 +181,22 @@ public class ApplicationUtilities {
- 		return new File(dirs.cacheDir);
+@@ -158,6 +158,21 @@ public class ApplicationUtilities {
+ 		return ProjectDirectories.from("gov", "NSA", applicationName);
  	}
  
 +	/**
@@ -749,7 +753,6 @@ index 3466d6b49..9bbc0380c 100644
 +	 * @return The default application's user cache directory.
 +	 */
 +	public static File getDefaultUserLogDir(ApplicationProperties applicationProperties) {
-+
 +		ApplicationIdentifier applicationIdentifier =
 +				new ApplicationIdentifier(applicationProperties);
 +
@@ -759,30 +762,30 @@ index 3466d6b49..9bbc0380c 100644
 +	}
 +
  	/**
- 	 * Gets the default application's user settings directory.
+ 	 * Gets the default application's user cache directory.
  	 * 
 -- 
-2.38.1
+2.40.1
 
 
-From 76baa7f8e125d102d39cc1bfb3d765cc4dd41c60 Mon Sep 17 00:00:00 2001
+From 9134e90096d86becc2e3aa3b7eb654539e9acb50 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:51:46 +0200
-Subject: [PATCH 6/7] Move `"tools"` to user state directory
+Subject: [PATCH 6/8] Move `"tools"` to user state directory
 
 ---
- .../main/java/ghidra/framework/Application.java  |  9 +++++++++
- .../main/java/ghidra/framework/ToolUtils.java    |  4 ++--
- .../java/ghidra/GhidraApplicationLayout.java     |  2 +-
- .../utility/application/ApplicationLayout.java   | 10 ++++++++++
- .../application/ApplicationUtilities.java        | 16 ++++++++++++++++
- 5 files changed, 38 insertions(+), 3 deletions(-)
+ .../main/java/ghidra/framework/Application.java   |  9 +++++++++
+ .../src/main/java/ghidra/framework/ToolUtils.java |  4 ++--
+ .../main/java/ghidra/GhidraApplicationLayout.java |  2 ++
+ .../utility/application/ApplicationLayout.java    | 11 +++++++++++
+ .../utility/application/ApplicationUtilities.java | 15 +++++++++++++++
+ 5 files changed, 39 insertions(+), 2 deletions(-)
 
 diff --git a/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java b/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
-index f507cb454..d704b3003 100644
+index a24a971e2..31b1fefd7 100644
 --- a/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
 +++ b/Ghidra/Framework/Generic/src/main/java/ghidra/framework/Application.java
-@@ -621,6 +621,15 @@ public class Application {
+@@ -618,6 +618,15 @@ public class Application {
  		return app.layout.getUserSettingsDir();
  	}
  
@@ -813,63 +816,69 @@ index 73872ea8f..e83a789b3 100644
  	}
  }
 diff --git a/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java b/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
-index 5ccbf95b7..14bcf6540 100644
+index 9ec60682f..39fddafdc 100644
 --- a/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
 +++ b/Ghidra/Framework/Utility/src/main/java/ghidra/GhidraApplicationLayout.java
-@@ -59,7 +59,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
+@@ -54,6 +54,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
+ 
+ 		// User directories
+ 		userTempDir = ApplicationUtilities.getDefaultUserTempDir(getApplicationProperties());
++		userStateDir = ApplicationUtilities.getDefaultUserStateDir(getApplicationProperties());
+ 		userCacheDir = ApplicationUtilities.getDefaultUserCacheDir(getApplicationProperties());
  		userLogDir = ApplicationUtilities.getDefaultUserLogDir(getApplicationProperties());
  		userSettingsDir = ApplicationUtilities.getDefaultUserSettingsDir(getApplicationProperties(),
- 			getApplicationInstallationDir());
--
+@@ -98,6 +99,7 @@ public class GhidraApplicationLayout extends ApplicationLayout {
+ 
+ 		// User directories
+ 		userTempDir = ApplicationUtilities.getDefaultUserTempDir(getApplicationProperties());
 +		userStateDir = ApplicationUtilities.getDefaultUserStateDir(getApplicationProperties());
- 		// Extensions
- 		extensionInstallationDirs = findExtensionInstallationDirectories();
- 		extensionArchiveDir = findExtensionArchiveDirectory();
+ 		userCacheDir = ApplicationUtilities.getDefaultUserCacheDir(getApplicationProperties());
+ 		userLogDir = ApplicationUtilities.getDefaultUserLogDir(getApplicationProperties());
+ 		userSettingsDir = ApplicationUtilities.getDefaultUserSettingsDir(getApplicationProperties(),
 diff --git a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
-index 6e21c6a67..e7107b37e 100644
+index 386115576..c53edc1b8 100644
 --- a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
 +++ b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationLayout.java
-@@ -42,6 +42,7 @@ public abstract class ApplicationLayout {
+@@ -39,6 +39,7 @@ public abstract class ApplicationLayout {
+ 	protected ResourceFile applicationInstallationDir;
+ 	protected Map<String, GModule> modules;
+ 	protected File userTempDir;
++	protected File userStateDir;
  	protected File userCacheDir;
  	protected File userLogDir;
  	protected File userSettingsDir;
-+	protected File userStateDir;
- 	protected ResourceFile patchDir;
- 	protected ResourceFile extensionArchiveDir;
- 	protected List<ResourceFile> extensionInstallationDirs;
-@@ -109,6 +110,15 @@ public abstract class ApplicationLayout {
- 		return userLogDir;
+@@ -91,6 +92,16 @@ public abstract class ApplicationLayout {
+ 		return userTempDir;
  	}
  
 +	/**
 +	 * Gets the user state directory from the application layout.
 +	 *
 +	 * @return The user state directory (or null if not set).
-+	 */
++ 	*/
 +	public final File getUserStateDir() {
 +		return userStateDir;
 +	}
 +
++
  	/**
- 	 * Gets the user settings directory from the application layout.
- 	 * 
+ 	 * Gets the user log directory from the application layout.
+ 	 *
 diff --git a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
-index 9bbc0380c..af3539c3b 100644
+index 0269f3adf..d7f64c867 100644
 --- a/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
 +++ b/Ghidra/Framework/Utility/src/main/java/utility/application/ApplicationUtilities.java
-@@ -224,4 +224,20 @@ public class ApplicationUtilities {
- 
- 		return new File(userSettingsParentDir, userSettingsDirName);
+@@ -137,6 +137,21 @@ public class ApplicationUtilities {
+ 		return repoApplicationRootDirs;
  	}
-+
+ 
 +	/**
-+	 * Gets the default application's user log directory.
++	 * Gets the default application's user state directory.
 +	 *
 +	 * @param applicationProperties The application properties.
-+	 * @return The default application's user cache directory.
++	 * @return The default application's user state directory.
 +	 */
 +	public static File getDefaultUserStateDir(ApplicationProperties applicationProperties) {
-+
 +		ApplicationIdentifier applicationIdentifier =
 +				new ApplicationIdentifier(applicationProperties);
 +
@@ -877,25 +886,28 @@ index 9bbc0380c..af3539c3b 100644
 +
 +		return new File(dirs.dataDir);
 +	}
- }
++
+ 	/**
+ 	 * Gets the default application's user temp directory.
+ 	 * 
 -- 
-2.38.1
+2.40.1
 
 
-From 058a7ee4663cdbc6332dfaf34ccff9f2234a1dfa Mon Sep 17 00:00:00 2001
+From 9ea5a61b1b821671559d5f868e35957a16a9c9dc Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Tue, 13 Dec 2022 20:52:17 +0200
-Subject: [PATCH 7/7] Move Felix cache to the user cache directory
+Subject: [PATCH 7/8] Move Felix cache to the user cache directory
 
 ---
  .../main/java/ghidra/app/plugin/core/osgi/BundleHost.java    | 5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/osgi/BundleHost.java b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/osgi/BundleHost.java
-index e528ec74a..7d6c32404 100644
+index f760055fb..c407752a6 100644
 --- a/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/osgi/BundleHost.java
 +++ b/Ghidra/Features/Base/src/main/java/ghidra/app/plugin/core/osgi/BundleHost.java
-@@ -359,7 +359,7 @@ public class BundleHost {
+@@ -358,7 +358,7 @@ public class BundleHost {
  	 * @return the path
  	 */
  	public static Path getOsgiDir() {
@@ -904,7 +916,7 @@ index e528ec74a..7d6c32404 100644
  		return usersettings.resolve("osgi");
  	}
  
-@@ -369,7 +369,8 @@ public class BundleHost {
+@@ -368,7 +368,8 @@ public class BundleHost {
  	 * @return the directory
  	 */
  	private static Path getCacheDir() {
@@ -915,5 +927,30 @@ index e528ec74a..7d6c32404 100644
  
  	private static String makeCacheDir() throws IOException {
 -- 
-2.38.1
+2.40.1
+
+
+From f7ff71fa88786b403d0c78d5c187c5b11c28ebda Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Sun, 25 Jun 2023 11:17:15 +0300
+Subject: [PATCH 8/8] Ignore log files in IP check
+
+---
+ gradle/support/ip.gradle | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/gradle/support/ip.gradle b/gradle/support/ip.gradle
+index 2b01fac95..ffe9ce329 100644
+--- a/gradle/support/ip.gradle
++++ b/gradle/support/ip.gradle
+@@ -134,6 +134,7 @@ def Map<String, List<String>> getIpForModule(Project p) {
+ 		exclude "**/data/build.xml" // language build file (generated for dev only)
+ 		exclude "**/.vs/**"
+ 		exclude "**/*.vcxproj.user"
++		exclude "*.log"
+ 	}
+ 	tree.each { file ->
+ 			String ip = getIp(p.projectDir, file)
+-- 
+2.40.1
 
