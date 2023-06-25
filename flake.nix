@@ -13,6 +13,11 @@
             patches = (prevAttrs.patches or [ ]) ++ [ patch ];
           });
 
+        fixJavaHome =
+          prev: final: prev.overrideAttrs (old: {
+            passthru = old.passthru // { home = "${final}/lib/openjdk"; };
+          });
+
         noPkiDrv = final: final.stdenv.mkDerivation {
           name = "no.pki";
 
@@ -55,11 +60,9 @@
 
           libgphoto2 = addPatch prev.libgphoto2 ./libgphoto2.patch;
 
-          # mongosh = addPatch prev.mongosh ./mongosh.patch;
-
-          openjdk11 = addPatch prev.openjdk11 ./openjdk-11u.patch;
-          openjdk17 = addPatch prev.openjdk17 ./openjdk-17u.patch;
-          openjdk19 = addPatch prev.openjdk19 ./openjdk-17u.patch;
+          openjdk11 = fixJavaHome (addPatch prev.openjdk11 ./openjdk-11u.patch) final.openjdk11;
+          openjdk17 = fixJavaHome (addPatch prev.openjdk17 ./openjdk-17u.patch) final.openjdk17;
+          openjdk19 = fixJavaHome (addPatch prev.openjdk19 ./openjdk-17u.patch) final.openjdk19;
 
           signal-desktop = prev.signal-desktop.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
