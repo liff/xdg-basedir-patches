@@ -13,7 +13,7 @@
             patches = (prevAttrs.patches or [ ]) ++ [ patch ];
           });
 
-        noPkiDrv = final: final.stdenv.mkDerivation rec {
+        noPkiDrv = final: final.stdenv.mkDerivation {
           name = "no.pki";
 
           unpackPhase = ''
