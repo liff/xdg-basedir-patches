@@ -92,6 +92,8 @@ in {
 
     GRIPHOME = "${cache}/grip";
 
+    KONAN_DATA_DIR = "${cache}/konan";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = ansibleData;
 
