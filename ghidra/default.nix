@@ -17,13 +17,13 @@
 let
   pkg_path = "$out/lib/ghidra";
   pname = "ghidra";
-  version = "10.3.1";
+  version = "10.3.2";
 
   src = fetchFromGitHub {
     owner = "NationalSecurityAgency";
     repo = "Ghidra";
     rev = "Ghidra_${version}_build";
-    hash = "sha256-KYZAu+15rcTkdfVQdKgAlVv3FxREUH0IIgYBb0qjdO8=";
+    hash = "sha256-CVnEHtSF3DVTH+8qwUsABJq/lRkg6xulEWU+Q5C9ajo=";
   };
 
   gradle = gradle_7;
@@ -166,6 +166,7 @@ in stdenv.mkDerivation {
     license = licenses.asl20;
     maintainers = with maintainers; [ roblabla liff ];
     broken = stdenv.isDarwin && stdenv.isx86_64;
+    mainProgram = "ghidra";
   };
 
 }
