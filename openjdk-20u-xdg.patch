@@ -1,12 +1,99 @@
-From 2af37bc0f09ffbed15dbb12d231ed8895e951fdc Mon Sep 17 00:00:00 2001
+From 48a954aff8bea0fe49da35d46fdf4701cbed57fc Mon Sep 17 00:00:00 2001
+From: Olli Helenius <liff@iki.fi>
+Date: Tue, 15 Aug 2023 22:08:26 +0300
+Subject: [PATCH 1/6] Add XDG base directories as system properties
+
+---
+ src/hotspot/share/runtime/arguments.cpp | 35 +++++++++++++++++++++++++
+ src/hotspot/share/runtime/arguments.hpp |  3 +++
+ src/hotspot/share/runtime/threads.cpp   |  2 ++
+ 3 files changed, 40 insertions(+)
+
+diff --git a/src/hotspot/share/runtime/arguments.cpp b/src/hotspot/share/runtime/arguments.cpp
+index a9ca3e424af..7248bc7e150 100644
+--- a/src/hotspot/share/runtime/arguments.cpp
++++ b/src/hotspot/share/runtime/arguments.cpp
+@@ -448,6 +448,41 @@ void Arguments::init_version_specific_system_properties() {
+       new SystemProperty("java.vm.vendor", VM_Version::vm_vendor(),  false));
+ }
+ 
++void Arguments::init_xdg_properties() {
++  /* JVM seems to use pwent to figure out user.home, so this may not necessarily match that? */
++  const char *home = getenv("HOME");
++
++  char *xdg_config_home = getenv("XDG_CONFIG_HOME");
++  if (!xdg_config_home) {
++    xdg_config_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".config") + 1, mtArguments);
++    sprintf(xdg_config_home, "%s/.config", home);
++  }
++  char *xdg_cache_home = getenv("XDG_CACHE_HOME");
++  if (!xdg_cache_home) {
++    xdg_cache_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".cache") + 1, mtArguments);
++    sprintf(xdg_cache_home, "%s/.cache", home);
++  }
++  char *xdg_data_home = getenv("XDG_DATA_HOME");
++  if (!xdg_data_home) {
++    xdg_data_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".local/share") + 1, mtArguments);
++    sprintf(xdg_data_home, "%s/.local/share", home);
++  }
++  char *xdg_state_home = getenv("XDG_STATE_HOME");
++  if (!xdg_state_home) {
++    xdg_state_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".local/state") + 1, mtArguments);
++    sprintf(xdg_state_home, "%s/.local/state", home);
++  }
++
++  if (xdg_config_home)
++    PropertyList_add(&_system_properties, new SystemProperty("xdg.config.home", xdg_config_home, false));
++  if (xdg_cache_home)
++    PropertyList_add(&_system_properties, new SystemProperty("xdg.cache.home", xdg_cache_home, false));
++  if (xdg_data_home)
++    PropertyList_add(&_system_properties, new SystemProperty("xdg.data.home", xdg_data_home, false));
++  if (xdg_state_home)
++    PropertyList_add(&_system_properties, new SystemProperty("xdg.state.home", xdg_state_home, false));
++}
++
+ /*
+  *  -XX argument processing:
+  *
+diff --git a/src/hotspot/share/runtime/arguments.hpp b/src/hotspot/share/runtime/arguments.hpp
+index cbf9dc33745..30228aa2b65 100644
+--- a/src/hotspot/share/runtime/arguments.hpp
++++ b/src/hotspot/share/runtime/arguments.hpp
+@@ -573,6 +573,9 @@ class Arguments : AllStatic {
+   // Update/Initialize System properties after JDK version number is known
+   static void init_version_specific_system_properties();
+ 
++  // XDG basedir properties
++  static void init_xdg_properties();
++
+   // Update VM info property - called after argument parsing
+   static void update_vm_info_property(const char* vm_info) {
+     _vm_info->set_value(vm_info);
+diff --git a/src/hotspot/share/runtime/threads.cpp b/src/hotspot/share/runtime/threads.cpp
+index 6e312501c4a..cb0f2ffaab7 100644
+--- a/src/hotspot/share/runtime/threads.cpp
++++ b/src/hotspot/share/runtime/threads.cpp
+@@ -435,6 +435,8 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
+   // Initialize system properties.
+   Arguments::init_system_properties();
+ 
++  Arguments::init_xdg_properties();
++
+   // So that JDK version can be used as a discriminator when parsing arguments
+   JDK_Version_init();
+ 
+-- 
+2.41.0
+
+
+From 3b059f44f68da1a2b2f89537e495f1be63ab1fd7 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Sun, 13 Aug 2023 10:06:25 +0300
-Subject: [PATCH 1/5] Add system properties for XDG base directories
+Subject: [PATCH 2/6] Add static properties for XDG base directories
 
 ---
  .../jdk/internal/util/StaticProperty.java     | 52 +++++++++++++++++++
- src/java.base/share/native/libjli/java.c      | 42 +++++++++++++++
- 2 files changed, 94 insertions(+)
+ 1 file changed, 52 insertions(+)
 
 diff --git a/src/java.base/share/classes/jdk/internal/util/StaticProperty.java b/src/java.base/share/classes/jdk/internal/util/StaticProperty.java
 index 8460fbbd448..ef616030b3e 100644
@@ -85,81 +172,14 @@ index 8460fbbd448..ef616030b3e 100644
      /**
       * {@return the {@code user.dir} system property}
       *
-diff --git a/src/java.base/share/native/libjli/java.c b/src/java.base/share/native/libjli/java.c
-index 62d859c0d4f..286b65b2d7b 100644
---- a/src/java.base/share/native/libjli/java.c
-+++ b/src/java.base/share/native/libjli/java.c
-@@ -107,6 +107,7 @@ static int numOptions, maxOptions;
- static const char* GetFullVersion();
- static jboolean IsJavaArgs();
- static void SetJavaLauncherProp();
-+static void SetXdgProps();
- static void SetClassPath(const char *s);
- static void SetMainModule(const char *s);
- static void SelectVersion(int argc, char **argv, char **main_class);
-@@ -337,6 +338,9 @@ JLI_Launch(int argc, char ** argv,              /* main argc, argv */
-     /* Set the -Dsun.java.launcher pseudo property */
-     SetJavaLauncherProp();
- 
-+    /* Set -Dxdg.*.home properties */
-+    SetXdgProps();
-+
-     return JVMInit(&ifn, threadStackSize, argc, argv, mode, what, ret);
- }
- /*
-@@ -1798,6 +1802,44 @@ static void SetJavaLauncherProp() {
-   AddOption("-Dsun.java.launcher=SUN_STANDARD", NULL);
- }
- 
-+static char *GetXdg(const char *property, const char *home, const char *envValue, const char *subDir)
-+{
-+  char *arg = NULL;
-+
-+  if (envValue && *envValue) {
-+    arg = JLI_MemAlloc(JLI_StrLen("-D") + JLI_StrLen(property) + JLI_StrLen("=") + JLI_StrLen(envValue) + 1);
-+    *arg = '\0';
-+    JLI_StrCat(arg, "-D");
-+    JLI_StrCat(arg, property);
-+    JLI_StrCat(arg, "=");
-+    JLI_StrCat(arg, envValue);
-+  } else if (home && *home) {
-+    arg = JLI_MemAlloc(JLI_StrLen("-D") + JLI_StrLen(property) + JLI_StrLen("=") + JLI_StrLen(home) + JLI_StrLen(subDir) + 1);
-+    *arg = '\0';
-+    JLI_StrCat(arg, "-D");
-+    JLI_StrCat(arg, property);
-+    JLI_StrCat(arg, "=");
-+    JLI_StrCat(arg, home);
-+    JLI_StrCat(arg, subDir);
-+  }
-+
-+  return arg;
-+}
-+
-+static void SetXdgProps()
-+{
-+  /* JVM seems to use pwent to figure out user.home, so this may not necessarily match that? */
-+  const char *home = getenv("HOME");
-+  char *xdgConfigHome = GetXdg("xdg.config.home", home, getenv("XDG_CONFIG_HOME"), "/.config");
-+  char *xdgCacheHome = GetXdg("xdg.cache.home", home, getenv("XDG_CACHE_HOME"), "/.cache");
-+  char *xdgDataHome = GetXdg("xdg.data.home", home, getenv("XDG_DATA_HOME"), "/.local/share");
-+  char *xdgStateHome = GetXdg("xdg.state.home", home, getenv("XDG_STATE_HOME"), "/.local/state");
-+  if (xdgConfigHome) AddOption(xdgConfigHome, NULL);
-+  if (xdgCacheHome) AddOption(xdgCacheHome, NULL);
-+  if (xdgDataHome) AddOption(xdgDataHome, NULL);
-+  if (xdgStateHome) AddOption(xdgStateHome, NULL);
-+}
-+
- /*
-  * Prints the version information from the java.version and other properties.
-  */
 -- 
 2.41.0
 
 
-From 1c05936699dc68856b092883d54fea2d47dc4d66 Mon Sep 17 00:00:00 2001
+From 352659951a75565e61f85e216eb31310ad6432a8 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Sun, 13 Aug 2023 10:11:46 +0300
-Subject: [PATCH 2/5] Move font cache to `XDG_CACHE_HOME`
+Subject: [PATCH 3/6] Move font cache to `XDG_CACHE_HOME`
 
 ---
  .../unix/classes/sun/font/FcFontConfiguration.java         | 7 +++++--
@@ -189,10 +209,10 @@ index 24eafee31a5..96f99489019 100644
 2.41.0
 
 
-From 72df914b7bfb993ee668b6cc6efe8cff9f0de6f0 Mon Sep 17 00:00:00 2001
+From 65d5b9867b6e2cbac96615fa9c88d8a578fc4c0c Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Sun, 13 Aug 2023 10:15:55 +0300
-Subject: [PATCH 3/5] Move default preferences directory to `XDG_CONFIG_HOME`
+Subject: [PATCH 4/6] Move default preferences directory to `XDG_CONFIG_HOME`
 
 ---
  .../java/util/prefs/FileSystemPreferences.java     | 14 +++++++++++---
@@ -227,10 +247,10 @@ index 2a894714666..2fcf8056fa3 100644
 2.41.0
 
 
-From 3ced77ff1cac53e848e1392ad381af1a0d03e9a8 Mon Sep 17 00:00:00 2001
+From 5da0e3533c11039dad5aa1909fd4ce8eea897145 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Sun, 13 Aug 2023 10:17:16 +0300
-Subject: [PATCH 4/5] Redirect all dotfiles to `$HOME/.cache/java-crud`
+Subject: [PATCH 5/6] Redirect all dotfiles to `$HOME/.cache/java-crud`
 
 ---
  src/java.base/share/classes/java/io/File.java | 61 ++++++++++++++-----
@@ -365,10 +385,10 @@ index c106998a561..c5623a6f3cd 100644
 2.41.0
 
 
-From 57a58cd3c89a074997328de9b0f1aec5d36a5f05 Mon Sep 17 00:00:00 2001
+From 6abb1f90c52d34a514e1f5efc59f7ce22ebee388 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
 Date: Sun, 13 Aug 2023 10:17:47 +0300
-Subject: [PATCH 5/5] Coerce Maven, Ivy and SBT to use XDG basedir locations
+Subject: [PATCH 6/6] Coerce Maven, Ivy and SBT to use XDG basedir locations
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
