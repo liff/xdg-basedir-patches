@@ -1,94 +1,126 @@
-From 48a954aff8bea0fe49da35d46fdf4701cbed57fc Mon Sep 17 00:00:00 2001
+From 145d65617d66912b6f52f12e3e117daaf0cd443b Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Tue, 15 Aug 2023 22:08:26 +0300
+Date: Sun, 20 Aug 2023 11:18:28 +0300
 Subject: [PATCH 1/6] Add XDG base directories as system properties
 
 ---
- src/hotspot/share/runtime/arguments.cpp | 35 +++++++++++++++++++++++++
- src/hotspot/share/runtime/arguments.hpp |  3 +++
- src/hotspot/share/runtime/threads.cpp   |  2 ++
- 3 files changed, 40 insertions(+)
+ .../jdk/internal/util/SystemProps.java        | 15 ++++++++++++-
+ src/java.base/share/native/libjava/System.c   |  5 +++++
+ .../share/native/libjava/java_props.h         |  4 ++++
+ .../unix/native/libjava/java_props_md.c       | 22 +++++++++++++++++++
+ 4 files changed, 45 insertions(+), 1 deletion(-)
 
-diff --git a/src/hotspot/share/runtime/arguments.cpp b/src/hotspot/share/runtime/arguments.cpp
-index a9ca3e424af..7248bc7e150 100644
---- a/src/hotspot/share/runtime/arguments.cpp
-+++ b/src/hotspot/share/runtime/arguments.cpp
-@@ -448,6 +448,41 @@ void Arguments::init_version_specific_system_properties() {
-       new SystemProperty("java.vm.vendor", VM_Version::vm_vendor(),  false));
+diff --git a/src/java.base/share/classes/jdk/internal/util/SystemProps.java b/src/java.base/share/classes/jdk/internal/util/SystemProps.java
+index b6aa1ef855e..5b7a3e1203f 100644
+--- a/src/java.base/share/classes/jdk/internal/util/SystemProps.java
++++ b/src/java.base/share/classes/jdk/internal/util/SystemProps.java
+@@ -74,6 +74,15 @@ public final class SystemProps {
+         putIfAbsent(props, "user.dir", raw.propDefault(Raw._user_dir_NDX));
+         putIfAbsent(props, "user.name", raw.propDefault(Raw._user_name_NDX));
+ 
++	String configHome = raw.propDefault(Raw._xdg_config_home_NDX);
++	String cacheHome = raw.propDefault(Raw._xdg_cache_home_NDX);
++	String dataHome = raw.propDefault(Raw._xdg_data_home_NDX);
++	String stateHome = raw.propDefault(Raw._xdg_state_home_NDX);
++	putIfAbsent(props, "xdg.config.home", configHome);
++	putIfAbsent(props, "xdg.cache.home", cacheHome);
++	putIfAbsent(props, "xdg.data.home", dataHome);
++	putIfAbsent(props, "xdg.state.home", stateHome);
++
+         // Platform defined encoding cannot be overridden on the command line
+         put(props, "sun.jnu.encoding", raw.propDefault(Raw._sun_jnu_encoding_NDX));
+         var nativeEncoding = ((raw.propDefault(Raw._file_encoding_NDX) == null)
+@@ -253,7 +262,11 @@ public final class SystemProps {
+         @Native private static final int _user_dir_NDX = 1 + _sun_os_patch_level_NDX;
+         @Native private static final int _user_home_NDX = 1 + _user_dir_NDX;
+         @Native private static final int _user_name_NDX = 1 + _user_home_NDX;
+-        @Native private static final int FIXED_LENGTH = 1 + _user_name_NDX;
++        @Native private static final int _xdg_config_home_NDX = 1 + _user_name_NDX;
++        @Native private static final int _xdg_cache_home_NDX = 1 + _xdg_config_home_NDX;
++        @Native private static final int _xdg_data_home_NDX = 1 + _xdg_cache_home_NDX;
++        @Native private static final int _xdg_state_home_NDX = 1 + _xdg_data_home_NDX;
++        @Native private static final int FIXED_LENGTH = 1 + _xdg_state_home_NDX;
+ 
+         // Array of Strings returned from the VM and Command line properties
+         // The array is not used after initialization is complete.
+diff --git a/src/java.base/share/native/libjava/System.c b/src/java.base/share/native/libjava/System.c
+index 098b943cc40..a2ecab85152 100644
+--- a/src/java.base/share/native/libjava/System.c
++++ b/src/java.base/share/native/libjava/System.c
+@@ -218,6 +218,11 @@ Java_jdk_internal_util_SystemProps_00024Raw_platformProperties(JNIEnv *env, jcla
+     PUTPROP_PlatformString(propArray, _user_home_NDX, sprops->user_home);
+     PUTPROP_PlatformString(propArray, _user_dir_NDX, sprops->user_dir);
+ 
++    PUTPROP_PlatformString(propArray, _xdg_config_home_NDX, sprops->xdg_config_home);
++    PUTPROP_PlatformString(propArray, _xdg_cache_home_NDX, sprops->xdg_cache_home);
++    PUTPROP_PlatformString(propArray, _xdg_data_home_NDX, sprops->xdg_data_home);
++    PUTPROP_PlatformString(propArray, _xdg_state_home_NDX, sprops->xdg_state_home);
++
+    /*
+     * Set i18n related property fields from platform.
+     */
+diff --git a/src/java.base/share/native/libjava/java_props.h b/src/java.base/share/native/libjava/java_props.h
+index 592c158c453..9c85dffceba 100644
+--- a/src/java.base/share/native/libjava/java_props.h
++++ b/src/java.base/share/native/libjava/java_props.h
+@@ -54,6 +54,10 @@ typedef struct {
+ 
+     nchar *user_name;
+     nchar *user_home;
++    nchar *xdg_config_home;
++    nchar *xdg_cache_home;
++    nchar *xdg_data_home;
++    nchar *xdg_state_home;
+ 
+     char *format_language;
+     char *display_language;
+diff --git a/src/java.base/unix/native/libjava/java_props_md.c b/src/java.base/unix/native/libjava/java_props_md.c
+index 230de04c079..da0c4c7d41d 100644
+--- a/src/java.base/unix/native/libjava/java_props_md.c
++++ b/src/java.base/unix/native/libjava/java_props_md.c
+@@ -346,6 +346,22 @@ static int ParseLocale(JNIEnv* env, int cat, char ** std_language, char ** std_s
+     return 1;
  }
  
-+void Arguments::init_xdg_properties() {
-+  /* JVM seems to use pwent to figure out user.home, so this may not necessarily match that? */
-+  const char *home = getenv("HOME");
 +
-+  char *xdg_config_home = getenv("XDG_CONFIG_HOME");
-+  if (!xdg_config_home) {
-+    xdg_config_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".config") + 1, mtArguments);
-+    sprintf(xdg_config_home, "%s/.config", home);
-+  }
-+  char *xdg_cache_home = getenv("XDG_CACHE_HOME");
-+  if (!xdg_cache_home) {
-+    xdg_cache_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".cache") + 1, mtArguments);
-+    sprintf(xdg_cache_home, "%s/.cache", home);
-+  }
-+  char *xdg_data_home = getenv("XDG_DATA_HOME");
-+  if (!xdg_data_home) {
-+    xdg_data_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".local/share") + 1, mtArguments);
-+    sprintf(xdg_data_home, "%s/.local/share", home);
-+  }
-+  char *xdg_state_home = getenv("XDG_STATE_HOME");
-+  if (!xdg_state_home) {
-+    xdg_state_home = NEW_C_HEAP_ARRAY(char, strlen(home) + 1 + strlen(".local/state") + 1, mtArguments);
-+    sprintf(xdg_state_home, "%s/.local/state", home);
-+  }
-+
-+  if (xdg_config_home)
-+    PropertyList_add(&_system_properties, new SystemProperty("xdg.config.home", xdg_config_home, false));
-+  if (xdg_cache_home)
-+    PropertyList_add(&_system_properties, new SystemProperty("xdg.cache.home", xdg_cache_home, false));
-+  if (xdg_data_home)
-+    PropertyList_add(&_system_properties, new SystemProperty("xdg.data.home", xdg_data_home, false));
-+  if (xdg_state_home)
-+    PropertyList_add(&_system_properties, new SystemProperty("xdg.state.home", xdg_state_home, false));
++static char *
++GetXdg(const char *env_var, const char *default_subdir, const char *user_home)
++{
++    const char *env_value = getenv(env_var);
++    if (env_value) {
++        return strdup(env_value);
++    } else if (*user_home != '?') {
++        size_t len = strlen(user_home) + 1 + strlen(default_subdir) + 1;
++        char *def = malloc(len);
++        snprintf(def, len, "%s/%s", user_home, default_subdir);
++        return def;
++    }
++    return "?";
 +}
 +
- /*
-  *  -XX argument processing:
-  *
-diff --git a/src/hotspot/share/runtime/arguments.hpp b/src/hotspot/share/runtime/arguments.hpp
-index cbf9dc33745..30228aa2b65 100644
---- a/src/hotspot/share/runtime/arguments.hpp
-+++ b/src/hotspot/share/runtime/arguments.hpp
-@@ -573,6 +573,9 @@ class Arguments : AllStatic {
-   // Update/Initialize System properties after JDK version number is known
-   static void init_version_specific_system_properties();
+ /* This function gets called very early, before VM_CALLS are setup.
+  * Do not use any of the VM_CALLS entries!!!
+  */
+@@ -500,6 +516,12 @@ GetJavaProperties(JNIEnv *env)
+         }
+     }
  
-+  // XDG basedir properties
-+  static void init_xdg_properties();
++    const char *xdg_config_home_env = getenv("XDG_CONFIG_HOME");
++    sprops.xdg_config_home = GetXdg("XDG_CONFIG_HOME", ".config", sprops.user_home);
++    sprops.xdg_cache_home = GetXdg("XDG_CACHE_HOME", ".cache", sprops.user_home);
++    sprops.xdg_data_home = GetXdg("XDG_DATA_HOME", ".local/share", sprops.user_home);
++    sprops.xdg_state_home = GetXdg("XDG_STATE_HOME", ".local/state", sprops.user_home);
 +
-   // Update VM info property - called after argument parsing
-   static void update_vm_info_property(const char* vm_info) {
-     _vm_info->set_value(vm_info);
-diff --git a/src/hotspot/share/runtime/threads.cpp b/src/hotspot/share/runtime/threads.cpp
-index 6e312501c4a..cb0f2ffaab7 100644
---- a/src/hotspot/share/runtime/threads.cpp
-+++ b/src/hotspot/share/runtime/threads.cpp
-@@ -435,6 +435,8 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
-   // Initialize system properties.
-   Arguments::init_system_properties();
- 
-+  Arguments::init_xdg_properties();
-+
-   // So that JDK version can be used as a discriminator when parsing arguments
-   JDK_Version_init();
- 
+     /* User TIMEZONE
+      * We defer setting up timezone until it's actually necessary.
+      * Refer to TimeZone.getDefault(). The system property
 -- 
 2.41.0
 
 
-From 3b059f44f68da1a2b2f89537e495f1be63ab1fd7 Mon Sep 17 00:00:00 2001
+From b0ce6d54d0fba9d4a19e4cb976b42d747abf701d Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 13 Aug 2023 10:06:25 +0300
+Date: Sun, 20 Aug 2023 11:20:25 +0300
 Subject: [PATCH 2/6] Add static properties for XDG base directories
 
 ---
@@ -96,7 +128,7 @@ Subject: [PATCH 2/6] Add static properties for XDG base directories
  1 file changed, 52 insertions(+)
 
 diff --git a/src/java.base/share/classes/jdk/internal/util/StaticProperty.java b/src/java.base/share/classes/jdk/internal/util/StaticProperty.java
-index 8460fbbd448..ef616030b3e 100644
+index 8460fbbd448..1a40b471c25 100644
 --- a/src/java.base/share/classes/jdk/internal/util/StaticProperty.java
 +++ b/src/java.base/share/classes/jdk/internal/util/StaticProperty.java
 @@ -43,6 +43,10 @@ public final class StaticProperty {
@@ -125,7 +157,7 @@ index 8460fbbd448..ef616030b3e 100644
          return USER_HOME;
      }
  
-+    /**
++        /**
 +     * {@return the {@code xdg.config.home} system property}
 +     *
 +     * <strong>{@link SecurityManager#checkPropertyAccess} is NOT checked
@@ -133,7 +165,7 @@ index 8460fbbd448..ef616030b3e 100644
 +     * that the returned property is not made accessible to untrusted code.</strong>
 +     */
 +    public static String xdgConfigHome() {
-+	return XDG_CONFIG_HOME;
++        return XDG_CONFIG_HOME;
 +    }
 +
 +    /**
@@ -144,7 +176,7 @@ index 8460fbbd448..ef616030b3e 100644
 +     * that the returned property is not made accessible to untrusted code.</strong>
 +     */
 +    public static String xdgCacheHome() {
-+	return XDG_CACHE_HOME;
++        return XDG_CACHE_HOME;
 +    }
 +
 +    /**
@@ -155,7 +187,7 @@ index 8460fbbd448..ef616030b3e 100644
 +     * that the returned property is not made accessible to untrusted code.</strong>
 +     */
 +    public static String xdgDataHome() {
-+	return XDG_DATA_HOME;
++        return XDG_DATA_HOME;
 +    }
 +
 +    /**
@@ -166,7 +198,7 @@ index 8460fbbd448..ef616030b3e 100644
 +     * that the returned property is not made accessible to untrusted code.</strong>
 +     */
 +    public static String xdgStateHome() {
-+	return XDG_STATE_HOME;
++        return XDG_STATE_HOME;
 +    }
 +
      /**
@@ -176,9 +208,9 @@ index 8460fbbd448..ef616030b3e 100644
 2.41.0
 
 
-From 352659951a75565e61f85e216eb31310ad6432a8 Mon Sep 17 00:00:00 2001
+From e68e43e8201d1e4e66641d7b4aaffe91bb6b1eb5 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 13 Aug 2023 10:11:46 +0300
+Date: Sun, 20 Aug 2023 11:21:15 +0300
 Subject: [PATCH 3/6] Move font cache to `XDG_CACHE_HOME`
 
 ---
@@ -209,9 +241,9 @@ index 24eafee31a5..96f99489019 100644
 2.41.0
 
 
-From 65d5b9867b6e2cbac96615fa9c88d8a578fc4c0c Mon Sep 17 00:00:00 2001
+From 27c91cd2e485a3b25309a62c5d577987e0d27416 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 13 Aug 2023 10:15:55 +0300
+Date: Sun, 20 Aug 2023 11:22:12 +0300
 Subject: [PATCH 4/6] Move default preferences directory to `XDG_CONFIG_HOME`
 
 ---
@@ -247,32 +279,33 @@ index 2a894714666..2fcf8056fa3 100644
 2.41.0
 
 
-From 5da0e3533c11039dad5aa1909fd4ce8eea897145 Mon Sep 17 00:00:00 2001
+From a73132fa056c93f52fa935b4c752b6b1e2390cd3 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 13 Aug 2023 10:17:16 +0300
+Date: Sun, 20 Aug 2023 11:26:04 +0300
 Subject: [PATCH 5/6] Redirect all dotfiles to `$HOME/.cache/java-crud`
 
 ---
- src/java.base/share/classes/java/io/File.java | 61 ++++++++++++++-----
- 1 file changed, 47 insertions(+), 14 deletions(-)
+ src/java.base/share/classes/java/io/File.java | 62 ++++++++++++++-----
+ 1 file changed, 48 insertions(+), 14 deletions(-)
 
 diff --git a/src/java.base/share/classes/java/io/File.java b/src/java.base/share/classes/java/io/File.java
-index c106998a561..c5623a6f3cd 100644
+index c106998a561..3e4257ece7d 100644
 --- a/src/java.base/share/classes/java/io/File.java
 +++ b/src/java.base/share/classes/java/io/File.java
-@@ -36,6 +36,11 @@ import java.security.SecureRandom;
- import java.util.ArrayList;
+@@ -37,6 +37,12 @@ import java.util.ArrayList;
  import java.util.List;
  import jdk.internal.util.StaticProperty;
+ 
 +import static jdk.internal.util.StaticProperty.userHome;
 +import static jdk.internal.util.StaticProperty.xdgConfigHome;
 +import static jdk.internal.util.StaticProperty.xdgCacheHome;
 +import static jdk.internal.util.StaticProperty.xdgDataHome;
 +import static jdk.internal.util.StaticProperty.xdgStateHome;
- 
++
  /**
   * An abstract representation of file and directory pathnames.
-@@ -248,7 +253,7 @@ public class File
+  *
+@@ -248,7 +254,7 @@ public class File
       * Internal constructor for already-normalized pathname strings.
       */
      private File(String pathname, int prefixLength) {
@@ -281,7 +314,7 @@ index c106998a561..c5623a6f3cd 100644
          this.prefixLength = prefixLength;
      }
  
-@@ -260,7 +265,7 @@ public class File
+@@ -260,7 +266,7 @@ public class File
      private File(String child, File parent) {
          assert parent.path != null;
          assert (!parent.path.isEmpty());
@@ -290,7 +323,7 @@ index c106998a561..c5623a6f3cd 100644
          this.prefixLength = parent.prefixLength;
      }
  
-@@ -277,7 +282,7 @@ public class File
+@@ -277,7 +283,7 @@ public class File
          if (pathname == null) {
              throw new NullPointerException();
          }
@@ -299,7 +332,7 @@ index c106998a561..c5623a6f3cd 100644
          this.prefixLength = fs.prefixLength(this.path);
      }
  
-@@ -319,14 +324,14 @@ public class File
+@@ -319,14 +325,14 @@ public class File
          }
          if (parent != null) {
              if (parent.isEmpty()) {
@@ -319,7 +352,7 @@ index c106998a561..c5623a6f3cd 100644
          }
          this.prefixLength = fs.prefixLength(this.path);
      }
-@@ -362,14 +367,14 @@ public class File
+@@ -362,14 +368,14 @@ public class File
          }
          if (parent != null) {
              if (parent.path.isEmpty()) {
@@ -339,7 +372,7 @@ index c106998a561..c5623a6f3cd 100644
          }
          this.prefixLength = fs.prefixLength(this.path);
      }
-@@ -435,7 +440,7 @@ public class File
+@@ -435,7 +441,7 @@ public class File
          p = fs.fromURIPath(p);
          if (File.separatorChar != '/')
              p = p.replace('/', File.separatorChar);
@@ -348,7 +381,7 @@ index c106998a561..c5623a6f3cd 100644
          this.prefixLength = fs.prefixLength(this.path);
      }
  
-@@ -2402,4 +2407,32 @@ public class File
+@@ -2402,4 +2408,32 @@ public class File
          }
          return result;
      }
@@ -385,33 +418,24 @@ index c106998a561..c5623a6f3cd 100644
 2.41.0
 
 
-From 6abb1f90c52d34a514e1f5efc59f7ce22ebee388 Mon Sep 17 00:00:00 2001
+From 22f6a9375d6d3bfa3e489c231c6cfaf5c445d875 Mon Sep 17 00:00:00 2001
 From: Olli Helenius <liff@iki.fi>
-Date: Sun, 13 Aug 2023 10:17:47 +0300
+Date: Sun, 20 Aug 2023 11:26:46 +0300
 Subject: [PATCH 6/6] Coerce Maven, Ivy and SBT to use XDG basedir locations
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
-So that I don’t need to use `_JAVA_OPTIONS`, which comes with a warning.
 ---
- .../jdk/internal/util/SystemProps.java        | 31 +++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ .../jdk/internal/util/SystemProps.java        | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
 diff --git a/src/java.base/share/classes/jdk/internal/util/SystemProps.java b/src/java.base/share/classes/jdk/internal/util/SystemProps.java
-index b6aa1ef855e..7a4561b4e0b 100644
+index 5b7a3e1203f..dcaf916873a 100644
 --- a/src/java.base/share/classes/jdk/internal/util/SystemProps.java
 +++ b/src/java.base/share/classes/jdk/internal/util/SystemProps.java
-@@ -139,6 +139,37 @@ public final class SystemProps {
+@@ -148,6 +148,32 @@ public final class SystemProps {
          fillI18nProps(props,"user.variant",  raw.propDefault(Raw._display_variant_NDX),
                  raw.propDefault(Raw._format_variant_NDX));
  
 +	/* Deal with XDG basedir obsession */
-+	String configHome = props.get("xdg.config.home");
-+	String cacheHome = props.get("xdg.cache.home");
-+	String dataHome = props.get("xdg.data.home");
-+	String stateHome = props.get("xdg.state.home");
-+
 +	if (configHome != null) {
 +	    putIfAbsent(props, "ivy.settings.dir", configHome + "/ivy");
 +	    putIfAbsent(props, "sbt.repository.config", configHome + "/sbt/repositories");
