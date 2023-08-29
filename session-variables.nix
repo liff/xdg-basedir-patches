@@ -94,6 +94,8 @@ in {
 
     KONAN_DATA_DIR = "${cache}/konan";
 
+    GRC_PREFS_PATH = "${config}/gnuradio/grc.conf";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = ansibleData;
 
