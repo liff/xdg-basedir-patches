@@ -90,7 +90,14 @@ in {
 
     MPLAYER_HOME = "${config}/mplayer";
 
-    GRIPHOME = "${cache}/grip";
+    GRIPHOME =
+      pkgs.writeTextFile {
+        name = "griphome";
+        destination = "/settings.py";
+        text = ''
+          CACHE_DIRECTORY = '${cache}/grip'
+        '';
+      };
 
     KONAN_DATA_DIR = "${cache}/konan";
 
