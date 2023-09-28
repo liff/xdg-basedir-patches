@@ -1,6 +1,8 @@
 { pkgs, lib, ... }:
 
 let
+  inherit (lib) mkDefault;
+
   data = "$HOME/.local/share";
   state = "$HOME/.local/state";
   config = "$HOME/.config";
@@ -14,131 +16,129 @@ let
 
 in {
   environment.sessionVariables = {
-    ERRFILE       = "${cache}/x11/xsession-errors";
-    XCOMPOSECACHE = "${cache}/xcompose";
+    ERRFILE       = mkDefault "${cache}/x11/xsession-errors";
+    XCOMPOSECACHE = mkDefault "${cache}/xcompose";
 
-    PARALLEL_HOME = "${config}/parallel";
+    PARALLEL_HOME = mkDefault "${config}/parallel";
 
-    HISTFILE = "${state}/bash/history";
+    HISTFILE = mkDefault "${state}/bash/history";
 
-    GNUPGHOME = "${config}/gnupg";
+    GNUPGHOME = mkDefault "${config}/gnupg";
 
-    MYSQL_HISTFILE = "${state}/mysql/history";
+    MYSQL_HISTFILE = mkDefault "${state}/mysql/history";
 
-    PSQLRC       = "${config}/postgresql/psqlrc";
-    PSQL_HISTORY = "${state}/postgresql/history";
+    PSQLRC       = mkDefault "${config}/postgresql/psqlrc";
+    PSQL_HISTORY = mkDefault "${state}/postgresql/history";
 
-    __GL_SHADER_DISK_CACHE_PATH = "${cache}/nvidia";
-    CUDA_CACHE_PATH             = "${cache}/nvidia";
+    __GL_SHADER_DISK_CACHE_PATH = mkDefault "${cache}/nvidia";
+    CUDA_CACHE_PATH             = mkDefault "${cache}/nvidia";
 
-    CARGO_HOME  = "${cache}/cargo";
-    RUSTUP_HOME = "${cache}/rustup";
+    CARGO_HOME  = mkDefault "${cache}/cargo";
+    RUSTUP_HOME = mkDefault "${cache}/rustup";
 
-    STACK_ROOT   = "${cache}/stack";
-    CABAL_DIR    = "${cache}/cabal";
-    CABAL_CONFIG = "${config}/cabal/config";
+    STACK_ROOT   = mkDefault "${cache}/stack";
+    CABAL_DIR    = mkDefault "${cache}/cabal";
+    CABAL_CONFIG = mkDefault "${config}/cabal/config";
 
-    RANDFILE = "${cache}/openssl/rnd";
+    RANDFILE = mkDefault "${cache}/openssl/rnd";
 
-    PYTHON_EGG_CACHE   = "${cache}/python/eggs";
-    IPYTHONDIR         = "${cache}/ipython";
-    JUPYTER_CONFIG_DIR = "${config}/jupyter";
-    PYTHONSTARTUP      = "${./python_startup.py}";
-    WORKON_HOME        = "${cache}/virtualenvs";
-    PYLINTHOME         = "${cache}/pylint";
+    PYTHON_EGG_CACHE   = mkDefault "${cache}/python/eggs";
+    IPYTHONDIR         = mkDefault "${cache}/ipython";
+    JUPYTER_CONFIG_DIR = mkDefault "${config}/jupyter";
+    PYTHONSTARTUP      = mkDefault "${./python_startup.py}";
+    WORKON_HOME        = mkDefault "${cache}/virtualenvs";
+    PYLINTHOME         = mkDefault "${cache}/pylint";
 
-    SCREENRC = "${config}/screen/rc";
+    SCREENRC = mkDefault "${config}/screen/rc";
 
-    AWS_CONFIG_FILE             = "${config}/aws/config";
-    AWS_SHARED_CREDENTIALS_FILE = "${config}/aws/credentials";
-    BOTO_CONFIG                  = "${config}/aws/boto.ini";
+    AWS_CONFIG_FILE             = mkDefault "${config}/aws/config";
+    AWS_SHARED_CREDENTIALS_FILE = mkDefault "${config}/aws/credentials";
+    BOTO_CONFIG                 = mkDefault "${config}/aws/boto.ini";
 
-    HTTPIE_CONFIG_DIR = "${config}/httpie";
+    HTTPIE_CONFIG_DIR = mkDefault "${config}/httpie";
 
-    NODE_REPL_HISTORY     = "${state}/node/repl_history";
-    NPM_CONFIG_USERCONFIG = "${config}/npm/npmrc";
-    NPM_CONFIG_PREFIX     = "${cache}/npm";
-    NVM_DIR               = "${cache}/nvm";
+    NODE_REPL_HISTORY     = mkDefault "${state}/node/repl_history";
+    NPM_CONFIG_USERCONFIG = mkDefault "${config}/npm/npmrc";
+    NPM_CONFIG_PREFIX     = mkDefault "${cache}/npm";
+    NVM_DIR               = mkDefault "${cache}/nvm";
 
-    SBT_ETC_FILE          = "${config}/sbt/sbtopts";
-    SBT_GLOBAL_SERVER_DIR = "\$\{XDG_RUNTIME_DIR}/sbt";
+    SBT_ETC_FILE          = mkDefault "${config}/sbt/sbtopts";
+    SBT_GLOBAL_SERVER_DIR = mkDefault "\$\{XDG_RUNTIME_DIR}/sbt";
 
-    GRADLE_USER_HOME = "${cache}/gradle";
+    GRADLE_USER_HOME = mkDefault "${cache}/gradle";
 
-    EMACSNATIVELOADPATH = "${cache}/emacs/native";
+    EMACSNATIVELOADPATH = mkDefault "${cache}/emacs/native";
 
-    PACKER_CONFIG_DIR = "${config}/packer";
-    PACKER_CACHE_DIR  = "${cache}/packer";
+    PACKER_CONFIG_DIR = mkDefault "${config}/packer";
+    PACKER_CACHE_DIR  = mkDefault "${cache}/packer";
 
-    SQLITE_HISTORY = "${state}/sqlite/history";
+    SQLITE_HISTORY = mkDefault "${state}/sqlite/history";
 
-    DOCKER_CONFIG        = "${config}/docker";
-    MACHINE_STORAGE_PATH = "${cache}/docker-machine";
+    DOCKER_CONFIG        = mkDefault "${config}/docker";
+    MACHINE_STORAGE_PATH = mkDefault "${cache}/docker-machine";
 
-    MINIKUBE_HOME = "${cache}/minikube";
+    MINIKUBE_HOME = mkDefault "${cache}/minikube";
 
-    GDBHISTFILE = "${state}/gdb/history";
+    GDBHISTFILE = mkDefault "${state}/gdb/history";
 
-    SSB_HOME = "${state}/zoom";
+    TEXMACS_HOME_PATH = mkDefault "${state}/texmacs";
 
-    TEXMACS_HOME_PATH = "${state}/texmacs";
+    KUBECONFIG   = mkDefault "${config}/kube/config.yaml";
+    KUBECACHEDIR = mkDefault "${cache}/kube";
 
-    KUBECONFIG   = "${config}/kube/config.yaml";
-    KUBECACHEDIR = "${cache}/kube";
+    VAULT_CONFIG_PATH = mkDefault "${config}/vault/config.hcl";
 
-    VAULT_CONFIG_PATH = "${config}/vault/config.hcl";
+    MPLAYER_HOME = mkDefault "${config}/mplayer";
 
-    MPLAYER_HOME = "${config}/mplayer";
-
-    GRIPHOME =
+    GRIPHOME = mkDefault (
       pkgs.writeTextFile {
         name = "griphome";
         destination = "/settings.py";
         text = ''
           CACHE_DIRECTORY = '${cache}/grip'
         '';
-      };
+      });
 
-    KONAN_DATA_DIR = "${cache}/konan";
+    KONAN_DATA_DIR = mkDefault "${cache}/konan";
 
-    GRC_PREFS_PATH = "${config}/gnuradio/grc.conf";
+    GRC_PREFS_PATH = mkDefault "${config}/gnuradio/grc.conf";
 
     # Handle the Ansible disaster
-    ANSIBLE_HOME = ansibleData;
+    ANSIBLE_HOME = mkDefault ansibleData;
 
-    ANSIBLE_CONFIG = "${ansibleConfig}/ansible.cfg";
+    ANSIBLE_CONFIG = mkDefault "${ansibleConfig}/ansible.cfg";
 
-    ANSIBLE_REMOTE_TEMP = "/tmp";
-    ANSIBLE_LOCAL_TEMP  = "${ansibleCache}/tmp";
-    ANSIBLE_ASYNC_DIR   = "${ansibleCache}/async";
+    ANSIBLE_REMOTE_TEMP = mkDefault "/tmp";
+    ANSIBLE_LOCAL_TEMP  = mkDefault "${ansibleCache}/tmp";
+    ANSIBLE_ASYNC_DIR   = mkDefault "${ansibleCache}/async";
 
-    ANSIBLE_SSH_CONTROL_PATH_DIR        = "\$\{XDG_RUNTIME_DIR:-${cache}}/ansible/cp";
-    ANSIBLE_PERSISTENT_CONTROL_PATH_DIR = "\$\{XDG_RUNTIME_DIR:-${cache}}/ansible/pc";
+    ANSIBLE_SSH_CONTROL_PATH_DIR        = mkDefault "\$\{XDG_RUNTIME_DIR:-${cache}}/ansible/cp";
+    ANSIBLE_PERSISTENT_CONTROL_PATH_DIR = mkDefault "\$\{XDG_RUNTIME_DIR:-${cache}}/ansible/pc";
 
-    ANSIBLE_GALAXY_TOKEN_PATH = "${ansibleState}/galaxy_token";
-    ANSIBLE_GALAXY_CACHE_DIR  = "${ansibleCache}/galaxy";
+    ANSIBLE_GALAXY_TOKEN_PATH = mkDefault "${ansibleState}/galaxy_token";
+    ANSIBLE_GALAXY_CACHE_DIR  = mkDefault "${ansibleCache}/galaxy";
 
-    ANSIBLE_COLLECTIONS_PATHS = "${ansibleData}/collections:/etc/ansible/collections";
-    ANSIBLE_ROLES_PATH        = "${ansibleData}/roles:/etc/ansible/roles";
+    ANSIBLE_COLLECTIONS_PATHS = mkDefault "${ansibleData}/collections:/etc/ansible/collections";
+    ANSIBLE_ROLES_PATH        = mkDefault "${ansibleData}/roles:/etc/ansible/roles";
 
-    ANSIBLE_LIBRARY      = "${ansiblePlugins}/modules";
-    ANSIBLE_MODULE_UTILS = "${ansiblePlugins}/module_utils";
+    ANSIBLE_LIBRARY      = mkDefault "${ansiblePlugins}/modules";
+    ANSIBLE_MODULE_UTILS = mkDefault "${ansiblePlugins}/module_utils";
 
-    ANSIBLE_DOC_FRAGMENT_PLUGINS = "${ansiblePlugins}/doc_fragments";
-    ANSIBLE_ACTION_PLUGINS       = "${ansiblePlugins}/action";
-    ANSIBLE_BECOME_PLUGINS       = "${ansiblePlugins}/become";
-    ANSIBLE_CACHE_PLUGINS        = "${ansiblePlugins}/cache";
-    ANSIBLE_CALLBACK_PLUGINS     = "${ansiblePlugins}/callback";
-    ANSIBLE_CLICONF_PLUGINS      = "${ansiblePlugins}/cliconf";
-    ANSIBLE_CONNECTION_PLUGINS   = "${ansiblePlugins}/connection";
-    ANSIBLE_FILTER_PLUGINS       = "${ansiblePlugins}/filter";
-    ANSIBLE_HTTPAPI_PLUGINS      = "${ansiblePlugins}/httpapi";
-    ANSIBLE_INVENTORY_PLUGINS    = "${ansiblePlugins}/inventory";
-    ANSIBLE_LOOKUP_PLUGINS       = "${ansiblePlugins}/lookup";
-    ANSIBLE_NETCONF_PLUGINS      = "${ansiblePlugins}/netconf";
-    ANSIBLE_STRATEGY_PLUGINS     = "${ansiblePlugins}/strategy";
-    ANSIBLE_TERMINAL_PLUGINS     = "${ansiblePlugins}/terminal";
-    ANSIBLE_TEST_PLUGINS         = "${ansiblePlugins}/test";
-    ANSIBLE_VARS_PLUGINS         = "${ansiblePlugins}/vars";
+    ANSIBLE_DOC_FRAGMENT_PLUGINS = mkDefault "${ansiblePlugins}/doc_fragments";
+    ANSIBLE_ACTION_PLUGINS       = mkDefault "${ansiblePlugins}/action";
+    ANSIBLE_BECOME_PLUGINS       = mkDefault "${ansiblePlugins}/become";
+    ANSIBLE_CACHE_PLUGINS        = mkDefault "${ansiblePlugins}/cache";
+    ANSIBLE_CALLBACK_PLUGINS     = mkDefault "${ansiblePlugins}/callback";
+    ANSIBLE_CLICONF_PLUGINS      = mkDefault "${ansiblePlugins}/cliconf";
+    ANSIBLE_CONNECTION_PLUGINS   = mkDefault "${ansiblePlugins}/connection";
+    ANSIBLE_FILTER_PLUGINS       = mkDefault "${ansiblePlugins}/filter";
+    ANSIBLE_HTTPAPI_PLUGINS      = mkDefault "${ansiblePlugins}/httpapi";
+    ANSIBLE_INVENTORY_PLUGINS    = mkDefault "${ansiblePlugins}/inventory";
+    ANSIBLE_LOOKUP_PLUGINS       = mkDefault "${ansiblePlugins}/lookup";
+    ANSIBLE_NETCONF_PLUGINS      = mkDefault "${ansiblePlugins}/netconf";
+    ANSIBLE_STRATEGY_PLUGINS     = mkDefault "${ansiblePlugins}/strategy";
+    ANSIBLE_TERMINAL_PLUGINS     = mkDefault "${ansiblePlugins}/terminal";
+    ANSIBLE_TEST_PLUGINS         = mkDefault "${ansiblePlugins}/test";
+    ANSIBLE_VARS_PLUGINS         = mkDefault "${ansiblePlugins}/vars";
   };
 }
