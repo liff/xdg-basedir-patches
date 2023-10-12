@@ -103,6 +103,8 @@ in {
 
     GRC_PREFS_PATH = mkDefault "${config}/gnuradio/grc.conf";
 
+    PM2_HOME = mkDefault "${cache}/pm2";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
 
