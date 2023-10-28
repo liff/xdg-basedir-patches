@@ -64,6 +64,7 @@
           openjdk17 = fixJavaHome (addPatch prev.openjdk17 ./openjdk-17u-xdg.patch) final.openjdk17;
           openjdk19 = fixJavaHome (addPatch prev.openjdk19 ./openjdk-17u-xdg.patch) final.openjdk19;
           openjdk20 = fixJavaHome (addPatch prev.openjdk20 ./openjdk-20u-xdg.patch) final.openjdk20;
+          openjdk21 = fixJavaHome (addPatch prev.openjdk21 ./openjdk-21u-xdg.patch) final.openjdk21;
 
           signal-desktop = prev.signal-desktop.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
