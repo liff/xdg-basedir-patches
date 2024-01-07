@@ -66,6 +66,15 @@
           openjdk20 = fixJavaHome (addPatch prev.openjdk20 ./openjdk-20u-xdg.patch) final.openjdk20;
           openjdk21 = fixJavaHome (addPatch prev.openjdk21 ./openjdk-21u-xdg.patch) final.openjdk21;
 
+          jetbrains = prev.jetbrains // {
+            jdk = fixJavaHome (addPatch prev.jetbrains.jdk ./openjdk-17u-xdg.patch) final.jetbrains.jdk;
+            rust-rover = prev.jetbrains.rust-rover.overrideAttrs (old: {
+              preFixup = (old.preFixup or "") + ''
+                gappsWrapperArgs+=(--prefix LD_PRELOAD : ${noPki}/lib/${noPki.libName})
+              '';
+            });
+          };
+
           signal-desktop = prev.signal-desktop.overrideAttrs (old: {
             installPhase = (old.installPhase or "") + ''
               mv $out/bin/signal-desktop $out/bin/.signal-desktop+pki
