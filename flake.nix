@@ -44,8 +44,6 @@
 
       final: prev:
         let noPki = noPkiDrv final; in {
-          act = addPatch prev.act ./act.patch;
-
           awscli2 = addPatch prev.awscli2 ./awscli2.patch;
 
           discord = prev.discord.overrideAttrs (old: {
