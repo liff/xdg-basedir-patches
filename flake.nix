@@ -133,7 +133,6 @@
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
           nil
-          rnix-lsp
           gnumake
           clang-tools
           (python3.withPackages (pyPkgs: with pyPkgs; [
