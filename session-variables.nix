@@ -19,7 +19,7 @@ in {
     ERRFILE       = mkDefault "${cache}/x11/xsession-errors";
     XCOMPOSECACHE = mkDefault "${cache}/xcompose";
 
-    PARALLEL_HOME = mkDefault "${config}/parallel";
+    PARALLEL_HOME = mkDefault "${cache}/parallel";
 
     HISTFILE = mkDefault "${state}/bash/history";
 
