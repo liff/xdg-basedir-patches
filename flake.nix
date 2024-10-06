@@ -54,8 +54,6 @@
             '';
           });
 
-          ghidra = final.callPackage ./ghidra { };
-
           libgphoto2 = addPatch prev.libgphoto2 ./libgphoto2.patch;
 
           openjdk11 = fixJavaHome (addPatch prev.openjdk11 ./openjdk-11u.patch) final.openjdk11;
