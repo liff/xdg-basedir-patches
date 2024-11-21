@@ -2,6 +2,7 @@
   description = "Packages patched with fixes to adjust configuration file/etc. locations.";
 
   inputs = {
+    nixpkgs.url = "/home/olli/Koodi/pub/nixpkgs-ollijh";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
