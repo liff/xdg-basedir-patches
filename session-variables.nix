@@ -110,6 +110,7 @@ in {
 
     # Flutter
     PUB_CACHE = mkDefault "${cache}/flutter-pub";
+    FLUTTER_SUPPRESS_ANALYTICS = "true";
 
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
