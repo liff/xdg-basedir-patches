@@ -108,6 +108,9 @@ in {
     # Dart language server or something
     ANALYZER_STATE_LOCATION_OVERRIDE = mkDefault "${cache}/dartServer";
 
+    # Flutter
+    PUB_CACHE = mkDefault "${cache}/flutter-pub";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
 
