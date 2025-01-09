@@ -58,10 +58,15 @@
           libgphoto2 = addPatch prev.libgphoto2 ./libgphoto2.patch;
 
           openjdk11 = fixJavaHome (addPatch prev.openjdk11 ./openjdk-11u.patch) final.openjdk11;
+          openjdk11_headless = fixJavaHome (addPatch prev.openjdk11_headless ./openjdk-11u.patch) final.openjdk11_headless;
           openjdk17 = fixJavaHome (addPatch prev.openjdk17 ./openjdk-17u-xdg.patch) final.openjdk17;
+          openjdk17_headless = fixJavaHome (addPatch prev.openjdk17_headless ./openjdk-17u-xdg.patch) final.openjdk17_headless;
           openjdk19 = fixJavaHome (addPatch prev.openjdk19 ./openjdk-17u-xdg.patch) final.openjdk19;
+          openjdk19_headless = fixJavaHome (addPatch prev.openjdk19_headless ./openjdk-17u-xdg.patch) final.openjdk19_headless;
           openjdk20 = fixJavaHome (addPatch prev.openjdk20 ./openjdk-20u-xdg.patch) final.openjdk20;
+          openjdk20_headless = fixJavaHome (addPatch prev.openjdk20_headless ./openjdk-20u-xdg.patch) final.openjdk20_headless;
           openjdk21 = fixJavaHome (addPatch prev.openjdk21 ./openjdk-21u-xdg.patch) final.openjdk21;
+          openjdk21_headless = fixJavaHome (addPatch prev.openjdk21_headless ./openjdk-21u-xdg.patch) final.openjdk21_headless;
 
           jetbrains = prev.jetbrains // {
             jdk = fixJavaHome (addPatch prev.jetbrains.jdk ./openjdk-21u-xdg.patch) final.jetbrains.jdk;
