@@ -112,6 +112,9 @@ in {
     PUB_CACHE = mkDefault "${cache}/flutter-pub";
     FLUTTER_SUPPRESS_ANALYTICS = "true";
 
+    # Go
+    GOPATH = mkDefault "${cache}/go";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
 
