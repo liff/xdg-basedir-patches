@@ -114,6 +114,7 @@ in {
 
     # Go
     GOPATH = mkDefault "${cache}/go";
+    MAGEFILE_CACHE = mkDefault "${cache}/magefile";
 
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
