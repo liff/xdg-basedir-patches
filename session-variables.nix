@@ -116,6 +116,8 @@ in {
     GOPATH = mkDefault "${cache}/go";
     MAGEFILE_CACHE = mkDefault "${cache}/magefile";
 
+    NEO4J_CYPHER_SHELL_HISTORY = mkDefault "${state}/neo4j/cypher_shell_history";
+
     # Handle the Ansible disaster
     ANSIBLE_HOME = mkDefault ansibleData;
 
