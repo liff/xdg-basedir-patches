@@ -20,17 +20,18 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1732183694,
-        "narHash": "sha256-+xvks8TXFkZqFIAYDdmTzXlu5g0Eg84hj3ST5QT1vYg=",
-        "ref": "refs/heads/nixos-unstable+ollijh",
-        "rev": "57e54be65b9fcb63c7c1a8332f2377efffa52166",
-        "revCount": 710102,
-        "type": "git",
-        "url": "file:///home/olli/Koodi/pub/nixpkgs-ollijh"
+        "lastModified": 1740367490,
+        "narHash": "sha256-WGaHVAjcrv+Cun7zPlI41SerRtfknGQap281+AakSAw=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "0196c0175e9191c474c26ab5548db27ef5d34b05",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/olli/Koodi/pub/nixpkgs-ollijh"
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "root": {
